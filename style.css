@@ -108,8 +108,9 @@ body {
 .header-content h1 {
     font-size: 2.5rem;
     font-weight: 700;
-    background: linear-gradient(90deg, #fff, var(--accent-blue));
+    background: linear-gradient(90deg, #fff, var(--accent-main));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -177,6 +178,56 @@ body {
     align-items: center;
     text-align: center;
     gap: 15px;
+    padding-top: 40px; /* Space for status indicator */
+}
+
+/* Status Indicator */
+.status-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    pointer-events: none;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #666; /* Default: Checking */
+    position: relative;
+}
+
+.status-dot.online {
+    background: var(--accent-green);
+    box-shadow: 0 0 10px var(--accent-green);
+}
+
+.status-dot.online::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-green);
+    animation: status-pulse 2s infinite;
+}
+
+.status-dot.offline {
+    background: #ff4b2b;
+    box-shadow: 0 0 10px #ff4b2b;
+}
+
+@keyframes status-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(2.5); opacity: 0; }
 }
 
 .icon {

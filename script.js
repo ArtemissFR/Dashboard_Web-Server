@@ -119,4 +119,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Health Check Logic
+    function checkAllServices() {
+        cards.forEach(card => {
+            const link = card.querySelector('a');
+            const dot = card.querySelector('.status-dot');
+            const statusText = card.querySelector('.status-text');
+            
+            if (link && dot && statusText) {
+                const url = link.href;
+                
+                // Use fetch with no-cors to check if server is reachable
+                // This is a "silent ping" technique
+                fetch(url, { mode: 'no-cors', cache: 'no-cache' })
+                    .then(() => {
+                        dot.classList.add('online');
+                        dot.classList.remove('offline');
+                        statusText.textContent = 'En ligne';
+                    })
+                    .catch(() => {
+                        dot.classList.add('offline');
+                        dot.classList.remove('online');
+                        statusText.textContent = 'Hors ligne';
+                    });
+            }
+        });
+    }
+
+    // Initial check and every 60 seconds
+    checkAllServices();
+    setInterval(checkAllServices, 60000);
 });
