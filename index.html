@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Lab Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <main class="dashboard-container">
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1 id="greeting">Bonjour, Administrateur</h1>
+                <p class="subtitle">Bienvenue sur votre centre de contrôle IT Lab.</p>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Temps</span>
+                    <span id="current-time" class="stat-value">00:00:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Date</span>
+                    <span id="current-date" class="stat-value">--/--/----</span>
+                </div>
+            </div>
+        </header>
+
+        <section class="grid-container">
+            <!-- XCP-NG Servers -->
+            <div class="card card-xcp" data-service="XCP-NG 01">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="server" class="icon"></i>
+                    <h3>XCP-NG 01</h3>
+                    <p>Serveur de Virtualisation</p>
+                    <a href="https://xcp-ng-01.local" class="btn">Accéder</a>
+                </div>
+            </div>
+
+            <div class="card card-xcp" data-service="XCP-NG 02">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="server" class="icon"></i>
+                    <h3>XCP-NG 02</h3>
+                    <p>Serveur de Virtualisation</p>
+                    <a href="https://xcp-ng-02.local" class="btn">Accéder</a>
+                </div>
+            </div>
+
+            <div class="card card-xcp" data-service="XCP-NG 03">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="server" class="icon"></i>
+                    <h3>XCP-NG 03</h3>
+                    <p>Serveur de Virtualisation</p>
+                    <a href="https://xcp-ng-03.local" class="btn">Accéder</a>
+                </div>
+            </div>
+
+            <!-- TrueNAS -->
+            <div class="card card-truenas" data-service="TrueNAS">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="database" class="icon"></i>
+                    <h3>TrueNAS</h3>
+                    <p>Stockage Centralisé (NAS)</p>
+                    <a href="https://truenas.local" class="btn">Accéder</a>
+                </div>
+            </div>
+
+            <!-- XOA -->
+            <div class="card card-xoa" data-service="XOA">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="terminal" class="icon"></i>
+                    <h3>VM XOA</h3>
+                    <p>Xen Orchestra Appliance</p>
+                    <a href="https://xoa.local" class="btn">Accéder</a>
+                </div>
+            </div>
+
+            <!-- PfSense -->
+            <div class="card card-pfsense" data-service="PfSense">
+                <div class="card-glass"></div>
+                <div class="card-content">
+                    <i data-lucide="shield-check" class="icon"></i>
+                    <h3>VM PfSense</h3>
+                    <p>Pare-feu & Routage</p>
+                    <a href="https://pfsense.local" class="btn">Accéder</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="dashboard-footer">
+            <p>&copy; 2026 IT Lab Infrastructure | Tout-en-un</p>
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
