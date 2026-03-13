@@ -2,10 +2,17 @@
     --bg-dark: #0a0b1e;
     --glass-bg: rgba(255, 255, 255, 0.05);
     --glass-border: rgba(255, 255, 255, 0.1);
+    
+    /* Default Accent (Cyan/Blue) */
+    --accent-main: #00d2ff;
+    --accent-secondary: #9d50bb;
+    
+    /* System Accents - preserved for reference if needed elsewhere */
     --accent-blue: #00d2ff;
     --accent-purple: #9d50bb;
     --accent-green: #00f260;
     --accent-orange: #ff9a9e;
+    
     --text-main: #ffffff;
     --text-dim: rgba(255, 255, 255, 0.7);
     --transition-slow: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -253,12 +260,136 @@ body {
     font-size: 0.9rem;
 }
 
+/* Settings & Theme Selector */
+.settings-btn {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition-slow);
+    margin-left: 20px;
+}
+
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: rotate(45deg);
+    border-color: var(--accent-main);
+}
+
+.theme-panel {
+    position: fixed;
+    top: 100px;
+    right: -300px;
+    width: 250px;
+    background: rgba(10, 11, 30, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px 0 0 20px;
+    padding: 25px;
+    z-index: 1000;
+    transition: var(--transition-slow);
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+
+.theme-panel.active {
+    right: 0;
+}
+
+.theme-panel h4 {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: var(--text-main);
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 10px;
+}
+
+.theme-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.theme-dot {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.2s;
+}
+
+.theme-dot:hover {
+    transform: scale(1.2);
+}
+
+.theme-dot.active {
+    border-color: #fff;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Update usages to use dynamic accent */
+.blob-1 {
+    width: 400px;
+    height: 400px;
+    background: var(--accent-main);
+    top: -100px;
+    right: -100px;
+}
+
+.header-content h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #fff, var(--accent-main));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--accent-main);
+}
+
+.icon {
+    width: 48px;
+    height: 48px;
+    color: var(--accent-main);
+    margin-bottom: 10px;
+    transition: var(--transition-slow);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    border-color: var(--accent-main);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.card:hover .btn {
+    background: var(--accent-main);
+    color: var(--bg-dark);
+    box-shadow: 0 0 15px var(--accent-main);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 20px;
+    }
+    .settings-btn {
+        margin-left: 0;
+        position: absolute;
+        top: 20px;
+        right: 20px;
     }
     .header-stats {
         width: 100%;

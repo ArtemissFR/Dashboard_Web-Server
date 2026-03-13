@@ -70,4 +70,53 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     revealCards();
+
+    // Theme Management Logic
+    const settingsToggle = document.getElementById('settings-toggle');
+    const themePanel = document.getElementById('theme-panel');
+    const themeDots = document.querySelectorAll('.theme-dot');
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('it-lab-theme');
+    if (savedTheme) {
+        setTheme(savedTheme);
+    }
+
+    // Toggle Panel
+    settingsToggle.addEventListener('click', () => {
+        themePanel.classList.toggle('active');
+    });
+
+    // Close panel when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!themePanel.contains(e.target) && !settingsToggle.contains(e.target)) {
+            themePanel.classList.remove('active');
+        }
+    });
+
+    // Change Theme
+    themeDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+            const color = dot.dataset.color;
+            setTheme(color);
+            localStorage.setItem('it-lab-theme', color);
+            
+            // UI Feedback
+            themeDots.forEach(d => d.classList.remove('active'));
+            dot.classList.add('active');
+        });
+    });
+
+    function setTheme(color) {
+        document.documentElement.style.setProperty('--accent-main', color);
+        
+        // Update active state of dots
+        themeDots.forEach(dot => {
+            if (dot.dataset.color === color) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+    }
 });
