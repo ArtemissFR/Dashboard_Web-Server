@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.tagName !== 'A') {
                 const link = card.querySelector('a');
                 if (link) {
-                    window.location.href = link.href;
+                    window.open(link.href, '_blank');
                 }
             }
         });
