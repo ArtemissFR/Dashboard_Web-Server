@@ -27,6 +27,10 @@
             <div class="header-content">
                 <h1 id="greeting">Bonjour, Administrateur</h1>
                 <p class="subtitle">Bienvenue sur votre centre de contrôle Satel Lab.</p>
+                <div class="search-container">
+                    <i data-lucide="search" class="search-icon"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher un service...">
+                </div>
             </div>
             <div class="header-stats">
                 <div class="stat-item">
@@ -37,6 +41,9 @@
                     <span class="stat-label">Date</span>
                     <span id="current-date" class="stat-value">--/--/----</span>
                 </div>
+                <button id="theme-toggle" class="settings-btn theme-btn" title="Thème Clair/Sombre">
+                    <i data-lucide="sun" id="theme-icon"></i>
+                </button>
                 <button id="settings-toggle" class="settings-btn" title="Paramètres">
                     <i data-lucide="settings"></i>
                 </button>
@@ -56,105 +63,77 @@
                 <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff" title="Blanc"></div>
                 <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78" title="Lime"></div>
             </div>
+
+            <h4 style="margin-top: 30px;">Options Avancées</h4>
+            <button id="admin-toggle" class="btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;">
+                <i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i>
+                Mode Admin
+            </button>
+            <button id="download-config" class="btn" style="width: 100%; display: none; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; background: #00f260; color: #000; border-color: #00f260;">
+                <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+                Sauvegarder
+            </button>
         </aside>
 
-        <section class="grid-container">
-            <!-- XCP-NG Servers -->
-            <div class="card card-xcp" data-service="XCP-NG 01">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="server" class="icon"></i>
-                    <h3>XCP-NG 01</h3>
-                    <p>Serveur de Virtualisation</p>
-                    <a href="https://xcp-ng-1.satelab/" class="btn" target="_blank"
-                        rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
+        <div class="category-tabs" id="category-tabs">
+            <button class="category-tab active" data-category="all">Tous</button>
+            <!-- Catégories générées dynamiquement -->
+        </div>
 
-            <div class="card card-xcp" data-service="XCP-NG 02">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="server" class="icon"></i>
-                    <h3>XCP-NG 02</h3>
-                    <p>Serveur de Virtualisation</p>
-                    <a href="https://xcp-ng-2.satelab/" class="btn" target="_blank"
-                        rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
-
-            <div class="card card-xcp" data-service="XCP-NG 03">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="server" class="icon"></i>
-                    <h3>XCP-NG 03</h3>
-                    <p>Serveur de Virtualisation</p>
-                    <a href="https://xcp-ng-3.satelab/" class="btn" target="_blank"
-                        rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
-
-            <!-- TrueNAS -->
-            <div class="card card-truenas" data-service="TrueNAS">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="database" class="icon"></i>
-                    <h3>TrueNAS</h3>
-                    <p>Stockage Centralisé (NAS)</p>
-                    <a href="https://truenas.satelab/" class="btn" target="_blank" rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
-
-            <!-- XOA -->
-            <div class="card card-xoa" data-service="XOA">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="terminal" class="icon"></i>
-                    <h3>VM XOA</h3>
-                    <p>Xen Orchestra Appliance</p>
-                    <a href="https://xoa.satelab/" class="btn" target="_blank" rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
-
-            <!-- PfSense -->
-            <div class="card card-pfsense" data-service="PfSense">
-                <div class="card-glass"></div>
-                <div class="card-content">
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
-                    </div>
-                    <i data-lucide="shield-check" class="icon"></i>
-                    <h3>VM PfSense</h3>
-                    <p>Pare-feu & Routage</p>
-                    <a href="https://pfsense.satelab/" class="btn" target="_blank" rel="noopener noreferrer">Accéder</a>
-                </div>
-            </div>
+        <section class="grid-container" id="services-grid">
+            <!-- Les cartes seront générées dynamiquement via config.json et script.js -->
         </section>
 
         <footer class="dashboard-footer">
             <p>&copy; 2025-2026 Satel Lab Infrastructure | Dashboard</p>
         </footer>
     </main>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modal-title">Ajouter/Modifier un Service</h2>
+            <form id="service-form">
+                <input type="hidden" id="service-id">
+                <div class="form-group">
+                    <label>Nom du service</label>
+                    <input type="text" id="service-name" required placeholder="Ex: XCP-NG 01">
+                </div>
+                <div class="form-group">
+                    <label>Catégorie / Type</label>
+                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation, NAS, Routeur...">
+                </div>
+                <div class="form-group">
+                    <label>Description courte</label>
+                    <input type="text" id="service-desc" required placeholder="Ex: Serveur principal">
+                </div>
+                <div class="form-group">
+                    <label>URL d'accès</label>
+                    <input type="url" id="service-url" required placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Icône (Lucide) ou Logo (Lien SVG)</label>
+                    <input type="text" id="service-icon" required placeholder="server, ou https://...">
+                    <small>Utilisez le nom d'une icône <a href="https://lucide.dev/icons/" target="_blank" style="color:var(--accent-main)">Lucide</a> ou un lien vers un SVG.</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" id="btn-cancel-modal">Annuler</button>
+                    <button type="submit" class="btn btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit/Add Card Template (Hidden) -->
+    <div id="add-card-template" style="display: none;">
+        <div class="card add-new-card" id="add-new-btn">
+            <div class="card-glass"></div>
+            <div class="card-content" style="justify-content: center; align-items: center; min-height: 200px;">
+                <i data-lucide="plus-circle" style="width: 64px; height: 64px; margin-bottom: 20px; color: var(--text-dim);"></i>
+                <h3 style="color: var(--text-dim);">Ajouter un service</h3>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

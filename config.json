@@ -1,0 +1,50 @@
+[
+    {
+        "id": "xcp-ng-01",
+        "name": "XCP-NG 01",
+        "type": "xcp",
+        "description": "Serveur de Virtualisation",
+        "url": "https://xcp-ng-1.satelab/",
+        "icon": "server"
+    },
+    {
+        "id": "xcp-ng-02",
+        "name": "XCP-NG 02",
+        "type": "xcp",
+        "description": "Serveur de Virtualisation",
+        "url": "https://xcp-ng-2.satelab/",
+        "icon": "server"
+    },
+    {
+        "id": "xcp-ng-03",
+        "name": "XCP-NG 03",
+        "type": "xcp",
+        "description": "Serveur de Virtualisation",
+        "url": "https://xcp-ng-3.satelab/",
+        "icon": "server"
+    },
+    {
+        "id": "truenas",
+        "name": "TrueNAS",
+        "type": "truenas",
+        "description": "Stockage Centralisé (NAS)",
+        "url": "https://truenas.satelab/",
+        "logo": "https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/truenas.svg"
+    },
+    {
+        "id": "xoa",
+        "name": "VM XOA",
+        "type": "xoa",
+        "description": "Xen Orchestra Appliance",
+        "url": "https://xoa.satelab/",
+        "icon": "terminal"
+    },
+    {
+        "id": "pfsense",
+        "name": "VM PfSense",
+        "type": "pfsense",
+        "description": "Pare-feu & Routage",
+        "url": "https://pfsense.satelab/",
+        "logo": "https://cdn.jsdelivr.net/npm/simple-icons@v10/icons/pfsense.svg"
+    }
+]
