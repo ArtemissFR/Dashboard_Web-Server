@@ -8,19 +8,25 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
     
-    <!-- Google Fonts: Outfit -->
+    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Tippy.js Animations -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
+    <!-- Premium Accents -->
+    <div class="aurora-bg"></div>
+    <div class="custom-cursor-dot"></div>
+    <div class="custom-cursor-ring"></div>
+
     <!-- Interactive Background -->
     <div id="particles-js" class="particles-bg"></div>
 
@@ -97,24 +103,69 @@
             </div>
             
             <div class="settings-section">
-                <h4>Couleur d'accentuation</h4>
-                <div class="theme-options">
-                    <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff" data-tippy-content="Cyan"></div>
-                    <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb" data-tippy-content="Violet"></div>
-                    <div class="theme-dot" style="background: #00f260;" data-color="#00f260" data-tippy-content="Vert"></div>
-                    <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e" data-tippy-content="Rose"></div>
-                    <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347" data-tippy-content="Orange"></div>
-                    <div class="theme-dot" style="background: #f12711;" data-color="#f12711" data-tippy-content="Rouge"></div>
-                    <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff" data-tippy-content="Blanc"></div>
-                    <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78" data-tippy-content="Lime"></div>
+                <h4>Apparence & Thème</h4>
+                <div class="settings-group" style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Couleur d'accentuation</label>
+                        <div class="theme-options">
+                            <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff"></div>
+                            <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb"></div>
+                            <div class="theme-dot" style="background: #00f260;" data-color="#00f260"></div>
+                            <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e"></div>
+                            <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347"></div>
+                            <div class="theme-dot" style="background: #f12711;" data-color="#f12711"></div>
+                            <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff"></div>
+                            <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Mode de couleur</label>
+                        <select id="color-match-mode" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                            <option value="auto">Auto (Synchronisé au système)</option>
+                            <option value="dark">Toujours Sombre</option>
+                            <option value="light">Toujours Clair</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Échelle de l'interface (Zoom)</label>
+                        <select id="ui-scale" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                            <option value="compact">Compacte (Petite)</option>
+                            <option value="standard" selected>Standard</option>
+                            <option value="large">Large (Grande)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <div class="settings-section">
-                <h4>Disposition</h4>
-                <div class="layout-options" style="display: flex; gap: 10px;">
-                    <button class="btn btn-outline active" id="layout-grid"><i data-lucide="layout-grid"></i> Grille</button>
-                    <button class="btn btn-outline" id="layout-list"><i data-lucide="list"></i> Liste</button>
+                <h4>Affichage & Navigation</h4>
+                <div class="settings-group" style="display:flex; flex-direction:column; gap:16px;">
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Disposition des cartes</label>
+                        <div class="layout-options" style="display: flex; gap: 10px;">
+                            <button class="btn btn-outline active" id="layout-grid" style="flex:1;"><i data-lucide="layout-grid"></i> Grille</button>
+                            <button class="btn btn-outline" id="layout-list" style="flex:1;"><i data-lucide="list"></i> Liste</button>
+                        </div>
+                    </div>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="clock" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Horloge 24h</span>
+                        <input type="checkbox" id="time-24h" checked style="width:18px; height:18px; cursor:pointer;">
+                    </label>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="timer" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Afficher les secondes</span>
+                        <input type="checkbox" id="time-seconds" checked style="width:18px; height:18px; cursor:pointer;">
+                    </label>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="external-link" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Liens dans un nouvel onglet</span>
+                        <input type="checkbox" id="link-newtab" checked style="width:18px; height:18px; cursor:pointer;">
+                    </label>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="mouse-pointer-click" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Clic sur toute la carte ouvre le lien</span>
+                        <input type="checkbox" id="link-fullcard" checked style="width:18px; height:18px; cursor:pointer;">
+                    </label>
+                    <button id="kiosk-mode-btn" class="btn btn-outline" style="width:100%; border-color:var(--accent-main); color:var(--accent-main);">
+                        <i data-lucide="monitor"></i> Activer Mode Kiosque Plein Écran
+                    </button>
                 </div>
             </div>
 
@@ -122,19 +173,21 @@
                 <h4>Performances & Arrière-plan</h4>
                 <div class="perf-options" style="display: flex; flex-direction: column; gap: 16px;">
                     <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="zap" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px"></i> Mode Économie d'Énergie</span>
-                        <input type="checkbox" id="perf-mode-toggle" style="width:auto; height:18px; width:18px; cursor:pointer;">
+                        <span><i data-lucide="zap" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Mode Économie d'Énergie</span>
+                        <input type="checkbox" id="perf-mode-toggle" style="width:18px; height:18px; cursor:pointer;">
                     </label>
                     
                     <div class="settings-group" style="background:var(--bg-base); padding: 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Densité des Particules</label>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">URL Fond d'écran (Image / HTTPS)</label>
+                        <input type="url" id="custom-wallpaper" placeholder="https://..." style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                        
+                        <label style="display:block; margin-top:12px; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Densité des Particules</label>
                         <select id="particles-density" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
                             <option value="disabled">Désactivé</option>
                             <option value="low">Faible</option>
                             <option value="normal" selected>Normal</option>
                             <option value="high">Élevé</option>
                         </select>
-                        
                         <label style="display:block; margin-top:12px; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Vitesse des Particules</label>
                         <select id="particles-speed" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
                             <option value="0.5">Lent</option>
@@ -146,13 +199,23 @@
             </div>
 
             <div class="settings-section">
-                <h4>Administration</h4>
-                <div class="admin-actions">
+                <h4>Données & Administration</h4>
+                <div class="admin-actions" style="display:flex; flex-direction:column; gap:10px;">
+                    <label style="display:block; font-size:0.85rem; color:var(--text-secondary)">Moteur de recherche de secours (Recherche Web Ctrl+K)</label>
+                    <select id="search-fallback" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none; margin-bottom:10px;">
+                        <option value="none">Aucun</option>
+                        <option value="google" selected>Google</option>
+                        <option value="duckduckgo">DuckDuckGo</option>
+                    </select>
+
                     <button id="admin-toggle" class="btn btn-outline" style="width:100%;">
-                        <i data-lucide="shield-alert"></i> Mode Admin
+                        <i data-lucide="shield-alert"></i> Menu Administrateur
                     </button>
-                    <button id="download-config" class="btn btn-primary" style="width:100%; display:none; margin-top:10px;">
+                    <button id="download-config" class="btn btn-primary" style="width:100%; display:none;">
                         <i data-lucide="download"></i> Sauvegarder Config
+                    </button>
+                    <button id="reset-data" class="btn btn-outline" style="width:100%; color:#ef4444; border-color:#ef4444; margin-top:10px;">
+                        <i data-lucide="trash-2"></i> Réinitialiser toutes mes préférences
                     </button>
                 </div>
             </div>

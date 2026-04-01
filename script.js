@@ -80,6 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     initTooltips();
 
+    const time24h = document.getElementById('time-24h');
+    const timeSec = document.getElementById('time-seconds');
+    let is24h = localStorage.getItem('it-lab-24h') !== 'false';
+    let isSec = localStorage.getItem('it-lab-sec') !== 'false';
+    if (time24h) {
+        time24h.checked = is24h;
+        time24h.addEventListener('change', e => { is24h = e.target.checked; localStorage.setItem('it-lab-24h', is24h); updateClock(); });
+    }
+    if (timeSec) {
+        timeSec.checked = isSec;
+        timeSec.addEventListener('change', e => { isSec = e.target.checked; localStorage.setItem('it-lab-sec', isSec); updateClock(); });
+    }
+
     function updateClock() {
         const now = new Date();
         
@@ -87,7 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         timeElement.textContent = now.toLocaleTimeString('fr-FR', {
             hour: '2-digit',
             minute: '2-digit',
-            second: '2-digit'
+            second: isSec ? '2-digit' : undefined,
+            hour12: !is24h
         });
 
         // Date
@@ -111,34 +125,82 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Light/Dark Mode Logic
+    // Link opens config
+    const linkNewTab = document.getElementById('link-newtab');
+    const linkFullCard = document.getElementById('link-fullcard');
+    window.isNewTab = localStorage.getItem('it-lab-newtab') !== 'false';
+    window.isFullCard = localStorage.getItem('it-lab-fullcard') !== 'false';
+    if(linkNewTab) {
+        linkNewTab.checked = window.isNewTab;
+        linkNewTab.addEventListener('change', e => { window.isNewTab = e.target.checked; localStorage.setItem('it-lab-newtab', window.isNewTab); if(typeof generateCards === 'function') generateCards(); });
+    }
+    if(linkFullCard) {
+        linkFullCard.checked = window.isFullCard;
+        linkFullCard.addEventListener('change', e => { window.isFullCard = e.target.checked; localStorage.setItem('it-lab-fullcard', window.isFullCard); });
+    }
+
+    // UI Scale / Zoom setup
+    const uiScaleSelect = document.getElementById('ui-scale');
+    const savedScale = localStorage.getItem('it-lab-ui-scale') || 'standard';
+    if(savedScale === 'compact') document.documentElement.style.fontSize = '14px';
+    if(savedScale === 'large') document.documentElement.style.fontSize = '18px';
+    if(uiScaleSelect) {
+        uiScaleSelect.value = savedScale;
+        uiScaleSelect.addEventListener('change', (e) => {
+            localStorage.setItem('it-lab-ui-scale', e.target.value);
+            document.documentElement.style.fontSize = e.target.value === 'compact' ? '14px' : (e.target.value === 'large' ? '18px' : '16px');
+        });
+    }
+
+    // Light/Dark Mode Logic (Auto Theme)
     const themeToggle = document.getElementById('theme-toggle');
-    
-    const savedMode = localStorage.getItem('it-lab-color-mode') || 'dark';
-    if (savedMode === 'light') {
-        document.documentElement.classList.add('light-mode');
-        if (themeToggle) {
-            themeToggle.innerHTML = '<i data-lucide="moon" id="theme-icon"></i>';
+    const colorModeSelect = document.getElementById('color-match-mode');
+    const savedModeDef = localStorage.getItem('it-lab-color-def') || 'auto';
+
+    function applyColorMode(modeSetting) {
+        let finalMode = modeSetting;
+        if (modeSetting === 'auto') {
+            finalMode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        if (finalMode === 'light') {
+            document.documentElement.classList.add('light-mode');
+            if(themeToggle) themeToggle.innerHTML = '<i data-lucide="moon" id="theme-icon"></i>';
+        } else {
+            document.documentElement.classList.remove('light-mode');
+            if(themeToggle) themeToggle.innerHTML = '<i data-lucide="sun" id="theme-icon"></i>';
+        }
+        if(window.lucide) lucide.createIcons();
+        if(window.pJSDom && window.pJSDom.length > 0) {
+            const pJS = window.pJSDom[0].pJS;
+            pJS.particles.color.value = finalMode==='light' ? "#000000" : "#ffffff";
+            pJS.particles.line_linked.color = finalMode==='light' ? "#000000" : "#ffffff";
+            pJS.fn.particlesRefresh();
         }
     }
 
-    if (themeToggle) {
+    applyColorMode(savedModeDef);
+
+    if (colorModeSelect) {
+        colorModeSelect.value = savedModeDef;
+        colorModeSelect.addEventListener('change', (e) => {
+            localStorage.setItem('it-lab-color-def', e.target.value);
+            applyColorMode(e.target.value);
+        });
+    }
+
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+        if (localStorage.getItem('it-lab-color-def') === 'auto') {
+            applyColorMode('auto');
+        }
+    });
+
+    if(themeToggle) {
         themeToggle.addEventListener('click', () => {
-            document.documentElement.classList.toggle('light-mode');
-            const isLight = document.documentElement.classList.contains('light-mode');
-            localStorage.setItem('it-lab-color-mode', isLight ? 'light' : 'dark');
-            
-            // Replaces the content entirely to allow Lucide to parse the new icon
-            themeToggle.innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" id="theme-icon"></i>`;
-            lucide.createIcons();
-            
-            // Reload Particles.js color scheme
-            if (window.pJSDom && window.pJSDom.length > 0) {
-                const pJS = window.pJSDom[0].pJS;
-                pJS.particles.color.value = isLight ? "#000000" : "#ffffff";
-                pJS.particles.line_linked.color = isLight ? "#000000" : "#ffffff";
-                pJS.fn.particlesRefresh();
-            }
+            const currentIsLight = document.documentElement.classList.contains('light-mode');
+            const newMode = currentIsLight ? 'dark' : 'light';
+            localStorage.setItem('it-lab-color-def', newMode);
+            if(colorModeSelect) colorModeSelect.value = newMode;
+            applyColorMode(newMode);
         });
     }
 
@@ -271,6 +333,87 @@ document.addEventListener('DOMContentLoaded', () => {
         speedSelect.addEventListener('change', (e) => {
             localStorage.setItem('it-lab-part-speed', e.target.value);
             if(typeof initParticles === 'function') initParticles();
+        });
+    }
+
+    // === Fallback Search Engine ===
+    const fallbackSelect = document.getElementById('search-fallback');
+    const savedFallback = localStorage.getItem('it-lab-search-fallback') || 'google';
+    if(fallbackSelect) {
+        fallbackSelect.value = savedFallback;
+        fallbackSelect.addEventListener('change', e => localStorage.setItem('it-lab-search-fallback', e.target.value));
+    }
+
+    // === Custom Wallpaper ===
+    const wpInput = document.getElementById('custom-wallpaper');
+    const savedWp = localStorage.getItem('it-lab-wallpaper') || '';
+    if(wpInput) {
+        wpInput.value = savedWp;
+        wpInput.addEventListener('input', e => {
+            localStorage.setItem('it-lab-wallpaper', e.target.value);
+            applyWallpaper(e.target.value);
+        });
+    }
+    function applyWallpaper(url) {
+        if(url) {
+            document.body.style.backgroundImage = `url('${url}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+            if(!document.getElementById('wp-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.id = 'wp-overlay';
+                overlay.style = 'position:fixed;inset:0;z-index:-1;background:var(--bg-base);opacity:0.85;';
+                document.body.appendChild(overlay);
+            }
+            const pbg = document.querySelector('.particles-bg');
+            if(pbg) pbg.style.zIndex = '0';
+        } else {
+            document.body.style.backgroundImage = '';
+            const ol = document.getElementById('wp-overlay');
+            if(ol) ol.remove();
+        }
+    }
+    applyWallpaper(savedWp);
+
+    // === Kiosk Mode ===
+    const kioskBtn = document.getElementById('kiosk-mode-btn');
+    if(kioskBtn) {
+        kioskBtn.addEventListener('click', () => {
+            document.body.classList.add('kiosk-mode');
+            if(document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e=>console.log(e));
+            }
+            const settingsModal = document.getElementById('settings-modal');
+            if(settingsModal) settingsModal.classList.remove('active');
+            
+            const exitHandler = (e) => {
+                if(e.key === 'Escape' || e.type === 'fullscreenchange') {
+                    if(!document.fullscreenElement) {
+                        document.body.classList.remove('kiosk-mode');
+                        document.removeEventListener('keydown', exitHandler);
+                        document.removeEventListener('fullscreenchange', exitHandler);
+                    }
+                }
+            };
+            document.addEventListener('keydown', exitHandler);
+            document.addEventListener('fullscreenchange', exitHandler);
+        });
+    }
+
+    // === Data Reset ===
+    const resetBtn = document.getElementById('reset-data');
+    if(resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            if(confirm("Attention ! Toutes vos préférences locales et favoris seront effacés. Le fichier config.json restera intact. Continuer ?")) {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('it-lab-')) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                location.reload();
+            }
         });
     }
 
@@ -445,10 +588,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateCards() {
         gridContainer.innerHTML = '';
         
-        // Sort dashboardServices (Favorites first)
+        const customOrderStr = localStorage.getItem('it-lab-custom-order');
+        let customOrder = [];
+        if (customOrderStr) {
+            try { customOrder = JSON.parse(customOrderStr); } catch(e){}
+        }
+
         dashboardServices.sort((a, b) => {
             if (a.favorite && !b.favorite) return -1;
             if (!a.favorite && b.favorite) return 1;
+            
+            if (customOrder.length > 0) {
+                const indexA = customOrder.indexOf(a.name);
+                const indexB = customOrder.indexOf(b.name);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+            }
             return 0;
         });
 
@@ -482,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p>${service.description}</p>
                 </div>
                 <div class="card-footer">
-                    <a href="${service.url}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Aperçu</a>
+                    <a href="${service.url}" class="btn btn-outline" target="${window.isNewTab ? '_blank' : '_self'}" rel="noopener noreferrer">Aperçu</a>
                     <div class="action-bar">
                         <div class="action-sm fav-btn ${service.favorite ? 'favorited' : ''}" data-tippy-content="Favori" data-id="${service.id}"><i data-lucide="star" style="width:16px;height:16px;" fill="${service.favorite ? '#f59e0b' : 'none'}"></i></div>
                         <div class="action-sm edit-btn" data-tippy-content="Modifier" data-id="${service.id}"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></div>
@@ -533,6 +689,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 onEnd: function (evt) {
                     const newCards = Array.from(gridContainer.querySelectorAll('.card:not(.add-new-card)'));
                     const orderedNames = newCards.map(c => c.dataset.service);
+                    
+                    localStorage.setItem('it-lab-custom-order', JSON.stringify(orderedNames));
+
                     // Reorder dashboardServices internally relative to their displayed order
                     dashboardServices.sort((a, b) => {
                         const indexA = orderedNames.indexOf(a.name);
@@ -559,11 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.action-bar') || e.target.closest('a')) return;
                 
-                // Allow clicking whole card to open link in non-admin mode if user wants
-                // Here we let them click the Aperçu button mostly.
-                if (!document.body.classList.contains('admin-mode') && e.target.tagName !== 'A' && !e.target.closest('button')) {
+                if (window.isFullCard && !document.body.classList.contains('admin-mode') && e.target.tagName !== 'A' && !e.target.closest('button')) {
                     const link = card.querySelector('a');
-                    if(link) window.open(link.href, '_blank');
+                    if(link) window.open(link.href, window.isNewTab ? '_blank' : '_self');
                 }
             });
 
@@ -603,6 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if(srv) {
                         srv.favorite = !srv.favorite;
                         if(window.saveFavoritesLocally) window.saveFavoritesLocally();
+                        if(srv.favorite && window.fireConfetti) window.fireConfetti(e.clientX, e.clientY);
                         generateCards();
                     }
                 });
@@ -844,7 +1002,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const selected = filteredCmdServices[cmdSelectedIndex];
                 if(selected && selected.url) {
-                    window.open(selected.url, '_blank');
+                    window.open(selected.url, window.isNewTab ? '_blank' : '_self');
+                    closeCommandPalette();
+                } else if (filteredCmdServices.length === 0) {
+                    const fallbackStr = localStorage.getItem('it-lab-search-fallback') || 'google';
+                    const term = encodeURIComponent(cmdInput.value);
+                    if(fallbackStr === 'google') {
+                        window.open('https://google.com/search?q=' + term, window.isNewTab ? '_blank' : '_self');
+                    } else if(fallbackStr === 'duckduckgo') {
+                        window.open('https://duckduckgo.com/?q=' + term, window.isNewTab ? '_blank' : '_self');
+                    }
                     closeCommandPalette();
                 }
             }
@@ -1017,5 +1184,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     initWeather();
     setInterval(initWeather, 3600000);
+
+    // === Custom Cursor ===
+    const cursorDot = document.querySelector('.custom-cursor-dot');
+    const cursorRing = document.querySelector('.custom-cursor-ring');
+
+    if (cursorDot && cursorRing && window.matchMedia('(pointer: fine)').matches) {
+        let mouseX = 0, mouseY = 0;
+        let ringX = 0, ringY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorDot.style.left = mouseX + 'px';
+            cursorDot.style.top  = mouseY + 'px';
+        });
+
+        // Ring follows with smooth lerp
+        function animateCursor() {
+            ringX += (mouseX - ringX) * 0.12;
+            ringY += (mouseY - ringY) * 0.12;
+            cursorRing.style.left = ringX + 'px';
+            cursorRing.style.top  = ringY + 'px';
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        // Hover state on interactive elements
+        document.querySelectorAll('a, button, .card, .category-tab, .theme-dot, .action-sm').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+        });
+
+        // Hide cursor when leaving window
+        document.addEventListener('mouseleave', () => {
+            cursorDot.style.opacity = '0';
+            cursorRing.style.opacity = '0';
+        });
+        document.addEventListener('mouseenter', () => {
+            cursorDot.style.opacity = '1';
+            cursorRing.style.opacity = '1';
+        });
+    }
+
+    // === Confetti on Favorite & Save ===
+    window.fireConfetti = function(x, y) {
+        if (typeof confetti !== 'function') return;
+        confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: {
+                x: x / window.innerWidth,
+                y: y / window.innerHeight
+            },
+            colors: [getComputedStyle(document.documentElement).getPropertyValue('--accent-main').trim(), '#ffffff', '#9d50bb'],
+            startVelocity: 30,
+            ticks: 100,
+            gravity: 0.8,
+            scalar: 0.9
+        });
+    };
 
 });
