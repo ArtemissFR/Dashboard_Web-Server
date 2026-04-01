@@ -4,95 +4,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satel Lab - Dashboard</title>
+    <title>Satel Lab | Infrastructure</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
+    
     <!-- Google Fonts: Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tippy.js Animations -->
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
+    
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body>
-    <div class="background-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
+    <!-- Interactive Background -->
+    <div id="particles-js" class="particles-bg"></div>
 
+    <!-- Modern Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="logo">
+                <div class="logo-icon"><i data-lucide="hexagon"></i></div>
+                <div class="logo-text">
+                    <h1>Satel Lab</h1>
+                    <span id="greeting" class="subtitle">Bonjour, Administrateur</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="nav-center">
+            <button class="search-trigger" id="search-trigger" data-tippy-content="Recherche Globale">
+                <div class="search-trigger-content">
+                    <i data-lucide="search"></i>
+                    <span>Rechercher...</span>
+                </div>
+                <kbd>Ctrl K</kbd>
+            </button>
+        </div>
+        
+        <div class="nav-right">
+            <div class="nav-stats" style="flex-wrap: nowrap; white-space: nowrap;">
+                <span id="weather-widget" class="weather-widget" data-tippy-content="Météo locale" style="display:flex; align-items:center; gap:6px; color:var(--accent-main); cursor:pointer;">
+                    <i data-lucide="cloud-sun" style="width:16px;height:16px;"></i> <span>--°C</span>
+                </span>
+                <span class="divider" style="margin-right:8px;"></span>
+                <span id="current-time">00:00</span>
+                <span class="divider"></span>
+                <span id="current-date">--/--</span>
+            </div>
+            <button id="theme-toggle" class="icon-btn" data-tippy-content="Basculer le thème">
+                <i data-lucide="sun" id="theme-icon"></i>
+            </button>
+            <button id="settings-toggle" class="icon-btn" data-tippy-content="Personnalisation & Admin">
+                <i data-lucide="settings"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
     <main class="dashboard-container">
-        <header class="dashboard-header">
-            <div class="header-content">
-                <h1 id="greeting">Bonjour, Administrateur</h1>
-                <p class="subtitle">Bienvenue sur votre centre de contrôle Satel Lab.</p>
-                <div class="search-container">
-                    <i data-lucide="search" class="search-icon"></i>
-                    <input type="text" id="search-input" placeholder="Rechercher un service...">
-                </div>
+        <!-- Minimal Category Tabs -->
+        <div class="category-tabs-wrapper">
+            <div class="category-tabs" id="category-tabs">
+                <button class="category-tab active" data-category="all">Tous</button>
+                <!-- Generated dynamically -->
             </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Temps</span>
-                    <span id="current-time" class="stat-value">00:00:00</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Date</span>
-                    <span id="current-date" class="stat-value">--/--/----</span>
-                </div>
-                <button id="theme-toggle" class="settings-btn theme-btn" title="Thème Clair/Sombre">
-                    <i data-lucide="sun" id="theme-icon"></i>
-                </button>
-                <button id="settings-toggle" class="settings-btn" title="Paramètres">
-                    <i data-lucide="settings"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Theme Selection Panel -->
-        <aside id="theme-panel" class="theme-panel">
-            <h4>Personnalisation</h4>
-            <div class="theme-options">
-                <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff" title="Cyan"></div>
-                <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb" title="Violet"></div>
-                <div class="theme-dot" style="background: #00f260;" data-color="#00f260" title="Vert"></div>
-                <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e" title="Rose"></div>
-                <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347" title="Orange"></div>
-                <div class="theme-dot" style="background: #f12711;" data-color="#f12711" title="Rouge"></div>
-                <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff" title="Blanc"></div>
-                <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78" title="Lime"></div>
-            </div>
-
-            <h4 style="margin-top: 30px;">Options Avancées</h4>
-            <button id="admin-toggle" class="btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 10px;">
-                <i data-lucide="shield-alert" style="width: 18px; height: 18px;"></i>
-                Mode Admin
-            </button>
-            <button id="download-config" class="btn" style="width: 100%; display: none; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; background: #00f260; color: #000; border-color: #00f260;">
-                <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-                Sauvegarder
-            </button>
-        </aside>
-
-        <div class="category-tabs" id="category-tabs">
-            <button class="category-tab active" data-category="all">Tous</button>
-            <!-- Catégories générées dynamiquement -->
         </div>
 
+        <!-- Services Grid -->
         <section class="grid-container" id="services-grid">
-            <!-- Les cartes seront générées dynamiquement via config.json et script.js -->
+            <!-- Cards generated dynamically -->
         </section>
 
+        <!-- Footer -->
         <footer class="dashboard-footer">
-            <p>&copy; 2025-2026 Satel Lab Infrastructure | Dashboard</p>
+            <p>&copy; 2025-2026 Satel Lab Infrastructure</p>
         </footer>
     </main>
 
-    <!-- Admin Modal -->
+    <!-- Modals & Overlays -->
+
+    <!-- Settings & Admin Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content settings-content">
+            <div class="modal-header">
+                <h2>Paramètres du Lab</h2>
+                <button class="icon-btn close-btn" id="close-settings"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="settings-section">
+                <h4>Couleur d'accentuation</h4>
+                <div class="theme-options">
+                    <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff" data-tippy-content="Cyan"></div>
+                    <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb" data-tippy-content="Violet"></div>
+                    <div class="theme-dot" style="background: #00f260;" data-color="#00f260" data-tippy-content="Vert"></div>
+                    <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e" data-tippy-content="Rose"></div>
+                    <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347" data-tippy-content="Orange"></div>
+                    <div class="theme-dot" style="background: #f12711;" data-color="#f12711" data-tippy-content="Rouge"></div>
+                    <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff" data-tippy-content="Blanc"></div>
+                    <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78" data-tippy-content="Lime"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Disposition</h4>
+                <div class="layout-options" style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline active" id="layout-grid"><i data-lucide="layout-grid"></i> Grille</button>
+                    <button class="btn btn-outline" id="layout-list"><i data-lucide="list"></i> Liste</button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Performances & Arrière-plan</h4>
+                <div class="perf-options" style="display: flex; flex-direction: column; gap: 16px;">
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="zap" style="width:16px;height:16px;vertical-align:-3px;margin-right:6px"></i> Mode Économie d'Énergie</span>
+                        <input type="checkbox" id="perf-mode-toggle" style="width:auto; height:18px; width:18px; cursor:pointer;">
+                    </label>
+                    
+                    <div class="settings-group" style="background:var(--bg-base); padding: 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Densité des Particules</label>
+                        <select id="particles-density" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                            <option value="disabled">Désactivé</option>
+                            <option value="low">Faible</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="high">Élevé</option>
+                        </select>
+                        
+                        <label style="display:block; margin-top:12px; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Vitesse des Particules</label>
+                        <select id="particles-speed" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                            <option value="0.5">Lent</option>
+                            <option value="1.5" selected>Normal</option>
+                            <option value="3">Rapide</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h4>Administration</h4>
+                <div class="admin-actions">
+                    <button id="admin-toggle" class="btn btn-outline" style="width:100%;">
+                        <i data-lucide="shield-alert"></i> Mode Admin
+                    </button>
+                    <button id="download-config" class="btn btn-primary" style="width:100%; display:none; margin-top:10px;">
+                        <i data-lucide="download"></i> Sauvegarder Config
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Form Modal -->
     <div id="admin-modal" class="modal-overlay">
         <div class="modal-content">
-            <h2 id="modal-title">Ajouter/Modifier un Service</h2>
+            <div class="modal-header">
+                <h2 id="modal-title">Ajouter un Service</h2>
+            </div>
             <form id="service-form">
                 <input type="hidden" id="service-id">
                 <div class="form-group">
@@ -101,7 +173,7 @@
                 </div>
                 <div class="form-group">
                     <label>Catégorie / Type</label>
-                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation, NAS, Routeur...">
+                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation">
                 </div>
                 <div class="form-group">
                     <label>Description courte</label>
@@ -112,30 +184,74 @@
                     <input type="url" id="service-url" required placeholder="https://...">
                 </div>
                 <div class="form-group">
-                    <label>Icône (Lucide) ou Logo (Lien SVG)</label>
-                    <input type="text" id="service-icon" required placeholder="server, ou https://...">
-                    <small>Utilisez le nom d'une icône <a href="https://lucide.dev/icons/" target="_blank" style="color:var(--accent-main)">Lucide</a> ou un lien vers un SVG.</small>
+                    <label>Icône (Lucide) ou Logo (URL SVG)</label>
+                    <input type="text" id="service-icon" required placeholder="ex: server">
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-cancel" id="btn-cancel-modal">Annuler</button>
-                    <button type="submit" class="btn btn-save">Enregistrer</button>
+                    <button type="button" class="btn btn-outline" id="btn-cancel-modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Edit/Add Card Template (Hidden) -->
-    <div id="add-card-template" style="display: none;">
-        <div class="card add-new-card" id="add-new-btn">
-            <div class="card-glass"></div>
-            <div class="card-content" style="justify-content: center; align-items: center; min-height: 200px;">
-                <i data-lucide="plus-circle" style="width: 64px; height: 64px; margin-bottom: 20px; color: var(--text-dim);"></i>
-                <h3 style="color: var(--text-dim);">Ajouter un service</h3>
+    <!-- Command Palette (Ctrl+K) -->
+    <div id="command-palette-overlay" class="cmd-overlay">
+        <div class="cmd-palette">
+            <div class="cmd-search">
+                <i data-lucide="search"></i>
+                <input type="text" id="cmd-input" placeholder="Que cherchez-vous ?" autocomplete="off">
+            </div>
+            <ul id="cmd-results" class="cmd-results">
+                <!-- Résultats dynamiques -->
+            </ul>
+            <div class="cmd-footer">
+                <span><kbd>↑</kbd> <kbd>↓</kbd> Naviguer</span>
+                <span><kbd>Entrée</kbd> Ouvrir</span>
+                <span><kbd>Échap</kbd> Fermer</span>
             </div>
         </div>
     </div>
 
+    <!-- Custom Context Menu -->
+    <div id="custom-context-menu" class="context-menu">
+        <div class="context-item" id="ctx-open">
+            <i data-lucide="external-link"></i> Ouvrir
+        </div>
+        <div class="context-item" id="ctx-copy-url">
+            <i data-lucide="copy"></i> Copier l'URL
+        </div>
+        <div class="context-item" id="ctx-copy-ip">
+            <i data-lucide="terminal"></i> Copier l'IP / Hostname
+        </div>
+        <div class="context-divider"></div>
+        <div class="context-item" id="ctx-fav">
+            <i data-lucide="star"></i> Basculer Favori
+        </div>
+        <div class="context-item" id="ctx-edit">
+            <i data-lucide="edit-2"></i> Éditer
+        </div>
+    </div>
+
+    <!-- Templating for Add Card -->
+    <div id="add-card-template" style="display: none;">
+        <div class="card add-new-card" id="add-new-btn">
+            <div class="card-glass"></div>
+            <div class="card-content add-card-content">
+                <div class="add-icon-wrapper">
+                    <i data-lucide="plus"></i>
+                </div>
+                <h3>Ajouter un service</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Libs -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
     <script src="script.js"></script>
 </body>
-
 </html>

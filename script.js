@@ -6,6 +6,79 @@ document.addEventListener('DOMContentLoaded', () => {
     const timeElement = document.getElementById('current-time');
     const dateElement = document.getElementById('current-date');
     const greetingElement = document.getElementById('greeting');
+    let sortableInstance = null;
+
+    // Initialize Particles.js
+    window.initParticles = function() {
+        const densityStr = localStorage.getItem('it-lab-part-density') || 'normal';
+        const speedVal = parseFloat(localStorage.getItem('it-lab-part-speed') || '1.5');
+        
+        const container = document.getElementById('particles-js');
+        if (!container) return;
+        
+        if (window.pJSDom && window.pJSDom.length > 0) {
+            window.pJSDom[0].pJS.fn.vendors.destroypJS();
+            window.pJSDom = [];
+        }
+        container.innerHTML = '';
+        
+        if (densityStr === 'disabled') {
+            return;
+        }
+        
+        let numberValue = 60;
+        if (densityStr === 'low') numberValue = 30;
+        else if (densityStr === 'high') numberValue = 120;
+        
+        const isLight = document.documentElement.classList.contains('light-mode');
+        const pcolor = isLight ? "#000000" : "#ffffff";
+        
+        if (window.particlesJS) {
+            particlesJS('particles-js', {
+                "particles": {
+                    "number": { "value": numberValue, "density": { "enable": true, "value_area": 800 } },
+                    "color": { "value": pcolor },
+                    "shape": { "type": "circle" },
+                    "opacity": { "value": 0.2, "random": false },
+                    "size": { "value": 3, "random": true },
+                    "line_linked": { "enable": true, "distance": 150, "color": pcolor, "opacity": 0.1, "width": 1 },
+                    "move": { "enable": true, "speed": speedVal, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": { "enable": true, "mode": "grab" },
+                        "onclick": { "enable": true, "mode": "push" },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": { "distance": 180, "line_linked": { "opacity": 0.3 } },
+                        "push": { "particles_nb": 3 }
+                    }
+                },
+                "retina_detect": true
+            });
+        }
+    };
+    
+    initParticles();
+
+    // Initialize Tooltips for existing static elements
+    const initTooltips = () => {
+        if (window.tippy) {
+            // Convert titles to data-tippy-content to prevent default browser tooltip
+            document.querySelectorAll('[title]').forEach(el => {
+                el.setAttribute('data-tippy-content', el.getAttribute('title'));
+                el.removeAttribute('title');
+            });
+            tippy('[data-tippy-content]', {
+                theme: 'glass',
+                animation: 'scale',
+                arrow: true
+            });
+        }
+    };
+    initTooltips();
 
     function updateClock() {
         const now = new Date();
@@ -58,12 +131,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Replaces the content entirely to allow Lucide to parse the new icon
             themeToggle.innerHTML = `<i data-lucide="${isLight ? 'moon' : 'sun'}" id="theme-icon"></i>`;
             lucide.createIcons();
+            
+            // Reload Particles.js color scheme
+            if (window.pJSDom && window.pJSDom.length > 0) {
+                const pJS = window.pJSDom[0].pJS;
+                pJS.particles.color.value = isLight ? "#000000" : "#ffffff";
+                pJS.particles.line_linked.color = isLight ? "#000000" : "#ffffff";
+                pJS.fn.particlesRefresh();
+            }
         });
     }
 
-    // Theme Management Logic (Accent Colors)
+    // Theme Management Logic (Settings Modal)
     const settingsToggle = document.getElementById('settings-toggle');
-    const themePanel = document.getElementById('theme-panel');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeSettings = document.getElementById('close-settings');
     const themeDots = document.querySelectorAll('.theme-dot');
     
     const savedTheme = localStorage.getItem('it-lab-theme');
@@ -71,15 +153,30 @@ document.addEventListener('DOMContentLoaded', () => {
         setTheme(savedTheme);
     }
 
-    if (settingsToggle) {
+    if (settingsToggle && settingsModal) {
         settingsToggle.addEventListener('click', () => {
-            themePanel.classList.toggle('active');
+            settingsModal.classList.add('active');
+        });
+    }
+    
+    if (closeSettings) {
+        closeSettings.addEventListener('click', () => {
+            settingsModal.classList.remove('active');
         });
     }
 
+    // Connect Top Search Trigger to Cmd Palette
+    const searchTrigger = document.getElementById('search-trigger');
+    if (searchTrigger) {
+        searchTrigger.addEventListener('click', () => {
+            if (typeof openCommandPalette === 'function') openCommandPalette();
+        });
+    }
+
+    // Modal Global out-click
     document.addEventListener('click', (e) => {
-        if (themePanel && settingsToggle && !themePanel.contains(e.target) && !settingsToggle.contains(e.target)) {
-            themePanel.classList.remove('active');
+        if (e.target.classList.contains('modal-overlay')) {
+            e.target.classList.remove('active');
         }
     });
 
@@ -105,13 +202,161 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // === Layout Settings ===
+    const layoutGridBtn = document.getElementById('layout-grid');
+    const layoutListBtn = document.getElementById('layout-list');
+    const servicesGrid = document.getElementById('services-grid');
+
+    const savedLayout = localStorage.getItem('it-lab-layout') || 'grid';
+    if(savedLayout === 'list') {
+        if(servicesGrid) servicesGrid.classList.add('list-view');
+        if(layoutListBtn) layoutListBtn.classList.add('active');
+        if(layoutGridBtn) layoutGridBtn.classList.remove('active');
+    }
+
+    if(layoutGridBtn && layoutListBtn) {
+        layoutGridBtn.addEventListener('click', (e) => {
+            if(servicesGrid) servicesGrid.classList.remove('list-view');
+            layoutGridBtn.classList.add('active');
+            layoutListBtn.classList.remove('active');
+            localStorage.setItem('it-lab-layout', 'grid');
+            if(window.createRipple) createRipple(e);
+        });
+        layoutListBtn.addEventListener('click', (e) => {
+            if(servicesGrid) servicesGrid.classList.add('list-view');
+            layoutListBtn.classList.add('active');
+            layoutGridBtn.classList.remove('active');
+            localStorage.setItem('it-lab-layout', 'list');
+            if(window.createRipple) createRipple(e);
+        });
+    }
+
+    // === Performance Setting ===
+    const perfToggle = document.getElementById('perf-mode-toggle');
+    const savedPerf = localStorage.getItem('it-lab-perf') === 'true';
+    if (savedPerf) {
+        document.body.classList.add('perf-mode');
+        if (perfToggle) perfToggle.checked = true;
+    }
+    
+    if (perfToggle) {
+        perfToggle.addEventListener('change', (e) => {
+            const isPerf = e.target.checked;
+            if (isPerf) {
+                document.body.classList.add('perf-mode');
+            } else {
+                document.body.classList.remove('perf-mode');
+            }
+            localStorage.setItem('it-lab-perf', isPerf);
+        });
+    }
+
+    // === Particles Settings ===
+    const densitySelect = document.getElementById('particles-density');
+    const speedSelect = document.getElementById('particles-speed');
+    
+    const savedDensity = localStorage.getItem('it-lab-part-density') || 'normal';
+    const savedSpeed = localStorage.getItem('it-lab-part-speed') || '1.5';
+    
+    if (densitySelect) densitySelect.value = savedDensity;
+    if (speedSelect) speedSelect.value = savedSpeed;
+
+    if (densitySelect) {
+        densitySelect.addEventListener('change', (e) => {
+            localStorage.setItem('it-lab-part-density', e.target.value);
+            if(typeof initParticles === 'function') initParticles();
+        });
+    }
+    if (speedSelect) {
+        speedSelect.addEventListener('change', (e) => {
+            localStorage.setItem('it-lab-part-speed', e.target.value);
+            if(typeof initParticles === 'function') initParticles();
+        });
+    }
+
     // Dynamic Services and Search Logic
     const gridContainer = document.getElementById('services-grid');
     const searchInput = document.getElementById('search-input');
     const categoryTabsContainer = document.getElementById('category-tabs');
     let allCards = [];
+
+    if (gridContainer) {
+        gridContainer.addEventListener('mousemove', e => {
+            const cards = gridContainer.querySelectorAll('.card');
+            for(const card of cards) {
+                const rect = card.getBoundingClientRect();
+                card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+                card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+            }
+        });
+    }
+
+    window.createRipple = function(event) {
+        const button = event.currentTarget;
+        const circle = document.createElement("span");
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+        const radius = diameter / 2;
+
+        const rect = button.getBoundingClientRect();
+        circle.style.width = circle.style.height = `${diameter}px`;
+        circle.style.left = `${event.clientX - rect.left - radius}px`;
+        circle.style.top = `${event.clientY - rect.top - radius}px`;
+        circle.classList.add("ripple");
+
+        const existingRipple = button.querySelector('.ripple');
+        if (existingRipple) {
+            existingRipple.remove();
+        }
+        button.appendChild(circle);
+    };
+
+    document.querySelectorAll('.btn, .icon-btn').forEach(btn => {
+        btn.addEventListener('click', createRipple);
+    });
     let dashboardServices = [];
     let currentCategory = 'all';
+
+    function renderSkeletons() {
+        if (!gridContainer) return;
+        gridContainer.innerHTML = '';
+        for (let i = 0; i < 6; i++) {
+            gridContainer.innerHTML += `
+                <div class="card" style="pointer-events: none; border-color: transparent;">
+                    <div class="card-header">
+                        <div class="card-icon-box skeleton-icon skeleton"></div>
+                        <div class="status-badge skeleton-pill skeleton"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="skeleton-title skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton" style="width: 80%;"></div>
+                    </div>
+                    <div class="card-footer" style="padding-top:16px;">
+                        <div class="skeleton-btn skeleton"></div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    renderSkeletons();
+
+    window.saveFavoritesLocally = function() {
+        const favIds = dashboardServices.filter(s => s.favorite).map(s => String(s.id));
+        localStorage.setItem('it-lab-favorites', JSON.stringify(favIds));
+    };
+
+    window.loadFavoritesLocally = function() {
+        try {
+            const favIdsStr = localStorage.getItem('it-lab-favorites');
+            if(favIdsStr) {
+                const favIds = JSON.parse(favIdsStr);
+                dashboardServices.forEach(s => {
+                    s.favorite = favIds.includes(String(s.id));
+                });
+            }
+        } catch(e) { console.error("Error loading favorites", e); }
+    };
 
     fetch('config.json')
         .then(response => {
@@ -120,10 +365,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(services => {
             dashboardServices = services;
-            generateCategoryTabs();
-            generateCards();
-            initializeSearchAndFilters();
-            initializeAdminMode();
+            loadFavoritesLocally();
+            // Introduce a very small delay to show off the cool skeleton loader (only 500ms)
+            setTimeout(() => {
+                generateCategoryTabs();
+                generateCards();
+                initializeSearchAndFilters();
+                initializeAdminMode();
+            }, 500);
         })
         .catch(err => {
             console.error('Erreur de chargement de config.json:', err);
@@ -135,11 +384,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
+    function moveIndicator(tab) {
+        if (!categoryTabsContainer) return;
+        const indicator = categoryTabsContainer.querySelector('.tab-indicator');
+        if(indicator && tab) {
+            indicator.style.width = `${tab.offsetWidth}px`;
+            indicator.style.transform = `translateX(${tab.offsetLeft - 4}px)`;
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        const activeTab = categoryTabsContainer?.querySelector('.category-tab.active');
+        if(activeTab) {
+            setTimeout(() => moveIndicator(activeTab), 50);
+        }
+    });
+
     function generateCategoryTabs() {
         if (!categoryTabsContainer) return;
         
         const types = new Set(dashboardServices.map(s => s.type || 'Autre'));
-        let tabsHtml = `<button class="category-tab" data-category="all">Tous</button>`;
+        let tabsHtml = `<div class="tab-indicator"></div><button class="category-tab" data-category="all">Tous</button>`;
         types.forEach(type => {
             tabsHtml += `<button class="category-tab" data-category="${type.toLowerCase()}">${capitalize(type)}</button>`;
         });
@@ -149,23 +414,30 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Restore active state
         let foundActive = false;
+        let activeTab = null;
         tabs.forEach(t => {
             if (t.dataset.category === currentCategory) {
                 t.classList.add('active');
+                activeTab = t;
                 foundActive = true;
             }
         });
         if (!foundActive && tabs.length > 0) {
             tabs[0].classList.add('active');
+            activeTab = tabs[0];
             currentCategory = 'all';
         }
 
+        setTimeout(() => moveIndicator(activeTab), 50);
+
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
+            tab.addEventListener('click', (e) => {
                 tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
+                moveIndicator(tab);
                 currentCategory = tab.dataset.category;
                 filterCards();
+                createRipple(e);
             });
         });
     }
@@ -173,11 +445,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateCards() {
         gridContainer.innerHTML = '';
         
+        // Sort dashboardServices (Favorites first)
+        dashboardServices.sort((a, b) => {
+            if (a.favorite && !b.favorite) return -1;
+            if (!a.favorite && b.favorite) return 1;
+            return 0;
+        });
+
         dashboardServices.forEach(service => {
             const card = document.createElement('div');
             card.className = `card card-${service.type || 'default'}`;
             card.dataset.service = service.name;
             card.dataset.category = (service.type || 'Autre').toLowerCase();
+            card.dataset.id = service.id; // added for context menu
+            card.dataset.url = service.url || '';
             
             let iconHtml = '';
             if (service.logo) {
@@ -189,20 +470,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             card.innerHTML = `
-                <div class="card-actions">
-                    <div class="action-btn edit-btn" title="Modifier" data-id="${service.id}"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></div>
-                    <div class="action-btn delete-btn" title="Supprimer" data-id="${service.id}"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></div>
-                </div>
-                <div class="card-glass"></div>
-                <div class="card-content">
+                <div class="card-header">
+                    <div class="card-icon-box">${iconHtml}</div>
                     <div class="status-badge">
                         <span class="status-dot"></span>
-                        <span class="status-text">Checking...</span>
+                        <span class="status-text">...</span>
                     </div>
-                    ${iconHtml}
+                </div>
+                <div class="card-body">
                     <h3>${service.name}</h3>
                     <p>${service.description}</p>
-                    <a href="${service.url}" class="btn" target="_blank" rel="noopener noreferrer">Accéder</a>
+                </div>
+                <div class="card-footer">
+                    <a href="${service.url}" class="btn btn-outline" target="_blank" rel="noopener noreferrer">Aperçu</a>
+                    <div class="action-bar">
+                        <div class="action-sm fav-btn ${service.favorite ? 'favorited' : ''}" data-tippy-content="Favori" data-id="${service.id}"><i data-lucide="star" style="width:16px;height:16px;" fill="${service.favorite ? '#f59e0b' : 'none'}"></i></div>
+                        <div class="action-sm edit-btn" data-tippy-content="Modifier" data-id="${service.id}"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></div>
+                        <div class="action-sm delete-btn" data-tippy-content="Supprimer" data-id="${service.id}"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></div>
+                    </div>
                 </div>
             `;
             gridContainer.appendChild(card);
@@ -236,18 +521,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.style.transform = 'translateY(0)';
             }, 100);
         });
+
+        // Initialize drag and drop via Sortable
+        if (sortableInstance) sortableInstance.destroy();
+        if (window.Sortable && gridContainer) {
+            sortableInstance = new Sortable(gridContainer, {
+                animation: 200,
+                filter: '.add-new-card',
+                disabled: !document.body.classList.contains('admin-mode'),
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    const newCards = Array.from(gridContainer.querySelectorAll('.card:not(.add-new-card)'));
+                    const orderedNames = newCards.map(c => c.dataset.service);
+                    // Reorder dashboardServices internally relative to their displayed order
+                    dashboardServices.sort((a, b) => {
+                        const indexA = orderedNames.indexOf(a.name);
+                        const indexB = orderedNames.indexOf(b.name);
+                        // If one isn't in orderedNames (e.g. filtered out), leave it at the end
+                        if(indexA === -1) return 1;
+                        if(indexB === -1) return -1;
+                        return indexA - indexB;
+                    });
+                }
+            });
+        }
+        
+        // Re-initialize tooltips for new dynamic elements
+        initTooltips();
     }
 
     function setupCardEvents() {
         allCards.forEach(card => {
+            card.querySelectorAll('.btn, .action-sm').forEach(btn => {
+                btn.addEventListener('click', createRipple);
+            });
+
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.card-actions')) return;
+                if (e.target.closest('.action-bar') || e.target.closest('a')) return;
                 
-                if (e.target.tagName !== 'A') {
+                // Allow clicking whole card to open link in non-admin mode if user wants
+                // Here we let them click the Aperçu button mostly.
+                if (!document.body.classList.contains('admin-mode') && e.target.tagName !== 'A' && !e.target.closest('button')) {
                     const link = card.querySelector('a');
-                    if (link && !document.body.classList.contains('admin-mode')) {
-                        window.open(link.href, '_blank');
-                    }
+                    if(link) window.open(link.href, '_blank');
                 }
             });
 
@@ -255,6 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (editBtn) {
                 editBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (!document.body.classList.contains('admin-mode')) {
+                        alert("Vous devez activer le Mode Admin pour éditer un service.");
+                        return;
+                    }
                     openAdminModal(editBtn.dataset.id);
                 });
             }
@@ -263,9 +583,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    if (!document.body.classList.contains('admin-mode')) {
+                        alert("Vous devez activer le Mode Admin pour supprimer un service.");
+                        return;
+                    }
                     if(confirm("Voulez-vous vraiment supprimer ce service ?")) {
                         dashboardServices = dashboardServices.filter(s => String(s.id) !== String(deleteBtn.dataset.id));
                         generateCategoryTabs();
+                        generateCards();
+                    }
+                });
+            }
+
+            const favBtn = card.querySelector('.fav-btn');
+            if (favBtn) {
+                favBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const srv = dashboardServices.find(s => String(s.id) === String(favBtn.dataset.id));
+                    if(srv) {
+                        srv.favorite = !srv.favorite;
+                        if(window.saveFavoritesLocally) window.saveFavoritesLocally();
                         generateCards();
                     }
                 });
@@ -318,6 +655,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(downloadBtn) {
                     downloadBtn.style.display = isAdmin ? 'flex' : 'none';
                 }
+                
+                // Toggle drag & drop availability
+                if(sortableInstance) {
+                    sortableInstance.option('disabled', !isAdmin);
+                }
             });
         }
 
@@ -334,18 +676,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const cancelBtn = document.getElementById('btn-cancel-modal');
-        const form = document.getElementById('service-form');
-
         if(cancelBtn) {
             cancelBtn.addEventListener('click', () => {
-                document.getElementById('admin-modal').classList.remove('active');
-            });
-        }
-        
-        if(form) {
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                saveService();
+                const modal = document.getElementById('admin-modal');
+                if(modal) modal.classList.remove('active');
             });
         }
     }
@@ -408,15 +742,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (idVal) {
             const index = dashboardServices.findIndex(s => String(s.id) === String(idVal));
             if(index > -1) {
+                newService.favorite = dashboardServices[index].favorite;
                 dashboardServices[index] = newService;
             }
         } else {
             dashboardServices.push(newService);
         }
+        
+        if (window.saveFavoritesLocally) window.saveFavoritesLocally();
 
-        document.getElementById('admin-modal').classList.remove('active');
+        const modal = document.getElementById('admin-modal');
+        if(modal) modal.classList.remove('active');
+        
         generateCategoryTabs();
         generateCards();
+    }
+    
+    // Bind form submission
+    const form = document.getElementById('service-form');
+    if(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            saveService();
+        });
     }
 
     function checkAllServices() {
@@ -444,4 +792,230 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Command Palette (Ctrl+K) Logic ---
+    const cmdOverlay = document.getElementById('command-palette-overlay');
+    const cmdInput = document.getElementById('cmd-input');
+    const cmdResults = document.getElementById('cmd-results');
+    let cmdSelectedIndex = 0;
+    let filteredCmdServices = [];
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openCommandPalette();
+        }
+        if (e.key === 'Escape' && cmdOverlay && cmdOverlay.classList.contains('active')) {
+            closeCommandPalette();
+        }
+    });
+
+    if(cmdOverlay) {
+        cmdOverlay.addEventListener('click', (e) => {
+            if(e.target === cmdOverlay) closeCommandPalette();
+        });
+    }
+
+    function openCommandPalette() {
+        if(!cmdOverlay) return;
+        cmdOverlay.classList.add('active');
+        cmdInput.value = '';
+        filterCommandPalette('');
+        setTimeout(() => cmdInput.focus(), 50);
+    }
+
+    function closeCommandPalette() {
+        if(cmdOverlay) cmdOverlay.classList.remove('active');
+    }
+
+    if(cmdInput) {
+        cmdInput.addEventListener('input', (e) => filterCommandPalette(e.target.value));
+        cmdInput.addEventListener('keydown', (e) => {
+            if(!filteredCmdServices.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                cmdSelectedIndex = (cmdSelectedIndex + 1) % filteredCmdServices.length;
+                renderCommandResults();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                cmdSelectedIndex = (cmdSelectedIndex - 1 + filteredCmdServices.length) % filteredCmdServices.length;
+                renderCommandResults();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const selected = filteredCmdServices[cmdSelectedIndex];
+                if(selected && selected.url) {
+                    window.open(selected.url, '_blank');
+                    closeCommandPalette();
+                }
+            }
+        });
+    }
+
+    function filterCommandPalette(term) {
+        term = term.toLowerCase();
+        filteredCmdServices = dashboardServices.filter(s => 
+            s.name.toLowerCase().includes(term) || 
+            (s.description && s.description.toLowerCase().includes(term)) ||
+            (s.type && s.type.toLowerCase().includes(term))
+        );
+        cmdSelectedIndex = 0;
+        renderCommandResults();
+    }
+
+    function renderCommandResults() {
+        if(!cmdResults) return;
+        cmdResults.innerHTML = '';
+        if(filteredCmdServices.length === 0) {
+            cmdResults.innerHTML = '<li class="cmd-item" style="justify-content:center;">Aucun résultat trouvé</li>';
+            return;
+        }
+
+        filteredCmdServices.forEach((service, index) => {
+            const li = document.createElement('li');
+            li.className = `cmd-item ${index === cmdSelectedIndex ? 'selected' : ''}`;
+            
+            let iconHtml = service.icon ? `<i data-lucide="${service.icon}" class="cmd-item-icon"></i>` : `<i data-lucide="server" class="cmd-item-icon"></i>`;
+            
+            li.innerHTML = `
+                ${iconHtml}
+                <span class="cmd-item-title">${service.name}</span>
+                <span class="cmd-item-cat">${service.type || 'Autre'}</span>
+            `;
+            
+            li.addEventListener('mouseenter', () => {
+                cmdSelectedIndex = index;
+                renderCommandResults(); // Re-render to update selection visual
+            });
+            li.addEventListener('click', () => {
+                if(service.url) {
+                    window.open(service.url, '_blank');
+                    closeCommandPalette();
+                }
+            });
+            cmdResults.appendChild(li);
+        });
+        lucide.createIcons();
+        
+        // Auto scroll to selected
+        const selectedEl = cmdResults.querySelector('.selected');
+        if(selectedEl) {
+            selectedEl.scrollIntoView({ block: 'nearest' });
+        }
+    }
+
+    // --- Custom Context Menu Logic ---
+    const ctxMenu = document.getElementById('custom-context-menu');
+    let ctxTargetId = null;
+    let ctxTargetUrl = null;
+
+    document.addEventListener('contextmenu', (e) => {
+        const cardTarget = e.target.closest('.card:not(.add-new-card)');
+        
+        if (cardTarget && ctxMenu) {
+            e.preventDefault();
+            ctxTargetId = cardTarget.dataset.id;
+            ctxTargetUrl = cardTarget.dataset.url;
+            
+            ctxMenu.style.display = 'block';
+            let x = e.pageX;
+            let y = e.pageY;
+            
+            // Adjust bounds
+            if (x + ctxMenu.offsetWidth > window.innerWidth) x -= ctxMenu.offsetWidth;
+            if (y + ctxMenu.offsetHeight > window.innerHeight) y -= ctxMenu.offsetHeight;
+            
+            ctxMenu.style.left = `${x}px`;
+            ctxMenu.style.top = `${y}px`;
+            
+            // small delay to allow display flex to apply before opacity transition
+            setTimeout(() => ctxMenu.classList.add('active'), 10);
+        } else if(ctxMenu) {
+            closeContextMenu();
+        }
+    });
+
+    document.addEventListener('click', () => closeContextMenu());
+    document.addEventListener('scroll', () => closeContextMenu());
+
+    function closeContextMenu() {
+        if(ctxMenu) {
+            ctxMenu.classList.remove('active');
+            setTimeout(() => { if(!ctxMenu.classList.contains('active')) ctxMenu.style.display = 'none'; }, 100);
+        }
+    }
+
+    if (ctxMenu) {
+        document.getElementById('ctx-open').addEventListener('click', () => {
+            if(ctxTargetUrl) window.open(ctxTargetUrl, '_blank');
+        });
+        document.getElementById('ctx-copy-url').addEventListener('click', () => {
+            if(ctxTargetUrl) navigator.clipboard.writeText(ctxTargetUrl).then(() => alert("URL copiée !"));
+        });
+        document.getElementById('ctx-copy-ip').addEventListener('click', () => {
+            if(ctxTargetUrl) {
+                try {
+                    const urlObj = new URL(ctxTargetUrl);
+                    navigator.clipboard.writeText(urlObj.hostname).then(() => alert("IP/Hostname copiée !"));
+                } catch(e) { }
+            }
+        });
+        document.getElementById('ctx-fav').addEventListener('click', () => {
+            if(ctxTargetId) {
+                const srv = dashboardServices.find(s => String(s.id) === String(ctxTargetId));
+                if(srv) {
+                    srv.favorite = !srv.favorite;
+                    if(window.saveFavoritesLocally) window.saveFavoritesLocally();
+                    generateCards();
+                }
+            }
+        });
+        document.getElementById('ctx-edit').addEventListener('click', () => {
+            if(!document.body.classList.contains('admin-mode')) {
+                alert("Vous devez activer le Mode Admin pour éditer un service.");
+                return;
+            }
+            if(ctxTargetId) openAdminModal(ctxTargetId);
+        });
+    }
+
+    function initWeather() {
+        const weatherWidget = document.getElementById('weather-widget');
+        if (!weatherWidget) return;
+        
+        const weatherSpan = weatherWidget.querySelector('span');
+        const weatherIcon = weatherWidget.querySelector('i');
+
+        fetch('https://get.geojs.io/v1/ip/geo.json')
+            .then(res => res.json())
+            .then(data => {
+                const lat = data.latitude;
+                const lon = data.longitude;
+                return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`).then(r => r.json()).then(w => ({city: data.city, weather: w}));
+            })
+            .then(data => {
+                const temp = Math.round(data.weather.current_weather.temperature);
+                const code = data.weather.current_weather.weathercode;
+                
+                weatherSpan.textContent = `${temp}°C (${data.city})`;
+                
+                let iconName = 'cloud';
+                if (code === 0) iconName = 'sun';
+                else if (code >= 1 && code <= 3) iconName = 'cloud-sun';
+                else if (code >= 45 && code <= 48) iconName = 'cloud-fog';
+                else if (code >= 51 && code <= 67) iconName = 'cloud-rain';
+                else if (code >= 71 && code <= 77) iconName = 'snowflake';
+                else if (code >= 80 && code <= 82) iconName = 'cloud-showers-heavy';
+                else if (code >= 95) iconName = 'cloud-lightning';
+                
+                weatherIcon.setAttribute('data-lucide', iconName);
+                if(window.lucide) lucide.createIcons();
+            })
+            .catch(err => {
+                console.error("Météo erreur:", err);
+                weatherSpan.textContent = "N/A";
+            });
+    }
+    initWeather();
+    setInterval(initWeather, 3600000);
+
 });
