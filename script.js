@@ -1,4 +1,74 @@
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('✅ PWA: Service Worker enregistré (', reg.scope, ')'))
+        .catch(err => console.log('❌ PWA: Échec SW:', err));
+    });
+}
+
+// Logic d'installation PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('✨ PWA: Dashboard prêt à être installé ! Cherchez l’icône "+" dans la barre d’adresse.');
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    console.log('📱 PWA: Satel Lab installé avec succès !');
+});
+
+// Typography loader
+const savedFont = localStorage.getItem('it-lab-font') || "'Plus Jakarta Sans', sans-serif";
+document.documentElement.style.setProperty('--ui-font', savedFont);
+
 document.addEventListener('DOMContentLoaded', () => {
+    // === PIN Verification ===
+    const savedPin = localStorage.getItem('it-lab-pin');
+    const pinLockOverlay = document.getElementById('pin-lock-overlay');
+    const pinInputs = document.querySelectorAll('.pin-digit');
+    if (savedPin && pinLockOverlay) {
+        let currentPin = '';
+        pinInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if(e.target.value) {
+                    if (index < pinInputs.length - 1) pinInputs[index + 1].focus();
+                    else {
+                        currentPin = Array.from(pinInputs).map(i => i.value).join('');
+                        if (currentPin === savedPin) {
+                            pinLockOverlay.classList.add('hidden');
+                            setTimeout(() => pinLockOverlay.remove(), 500);
+                        } else {
+                            document.getElementById('pin-error').style.display = 'block';
+                            pinInputs.forEach(i => { i.classList.add('error'); i.value = ''; });
+                            setTimeout(() => { pinInputs.forEach(i => i.classList.remove('error')); pinInputs[0].focus(); }, 400);
+                        }
+                    }
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) pinInputs[index - 1].focus();
+            });
+        });
+    } else if(pinLockOverlay) {
+        pinLockOverlay.classList.add('hidden');
+        setTimeout(() => pinLockOverlay.remove(), 500);
+    }
+
+    // === Scratchpad Widget ===
+    const scratchpadContent = document.getElementById('scratchpad-content');
+    const scratchpadWidget = document.getElementById('scratchpad-widget');
+    if(scratchpadContent) {
+        scratchpadContent.value = localStorage.getItem('it-lab-notes') || '';
+        document.getElementById('scratchpad-fab').addEventListener('click', () => {
+            scratchpadWidget.classList.toggle('active');
+            if(scratchpadWidget.classList.contains('active')) scratchpadContent.focus();
+        });
+        document.getElementById('close-scratchpad').addEventListener('click', () => scratchpadWidget.classList.remove('active'));
+        scratchpadContent.addEventListener('input', (e) => localStorage.setItem('it-lab-notes', e.target.value));
+    }
+
     // Initialize Lucide icons
     lucide.createIcons();
 
@@ -7,6 +77,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateElement = document.getElementById('current-date');
     const greetingElement = document.getElementById('greeting');
     let sortableInstance = null;
+
+    // === UI Sounds ===
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    window.playSound = function(type) {
+        if(localStorage.getItem('it-lab-sounds') !== 'true') return;
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        if(type === 'hover') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.05);
+        } else if(type === 'click') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+    };
+    
+    const uiSoundsToggle = document.getElementById('ui-sounds-toggle');
+    if(uiSoundsToggle) {
+        uiSoundsToggle.checked = localStorage.getItem('it-lab-sounds') === 'true';
+        uiSoundsToggle.addEventListener('change', e => {
+            localStorage.setItem('it-lab-sounds', e.target.checked);
+            if(e.target.checked) window.playSound('click');
+        });
+    }
+
+    // === Drag & Drop global pour ajout URL ===
+    document.body.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+    document.body.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+        if(url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            openAdminModal();
+            const urlField = document.getElementById('service-url');
+            const nameField = document.getElementById('service-name');
+            if(urlField) urlField.value = url;
+            if(nameField) {
+                try { nameField.value = new URL(url).hostname; } catch(err){}
+            }
+        }
+    });
 
     // Initialize Particles.js
     window.initParticles = function() {
@@ -33,16 +151,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const isLight = document.documentElement.classList.contains('light-mode');
         const pcolor = isLight ? "#000000" : "#ffffff";
         
+        speedVal = parseFloat(localStorage.getItem('it-lab-part-speed') || '1.5');
+        const weatherFxToggle = localStorage.getItem('it-lab-weather-fx') !== 'false';
+        const currentWeather = localStorage.getItem('it-lab-last-weather') || '';
+        
+        let shapeType = "circle";
+        let direction = "none";
+        let straight = false;
+        
+        if (weatherFxToggle && (currentWeather.includes('pluie') || currentWeather.includes('neige') || currentWeather.includes('averse'))) {
+            shapeType = currentWeather.includes('neige') ? "circle" : "edge";
+            direction = "bottom";
+            straight = true;
+            speedVal = currentWeather.includes('neige') ? speedVal * 2 : speedVal * 5;
+            numberValue = currentWeather.includes('neige') ? numberValue * 2 : numberValue * 2.5;
+        }
+
         if (window.particlesJS) {
             particlesJS('particles-js', {
                 "particles": {
                     "number": { "value": numberValue, "density": { "enable": true, "value_area": 800 } },
                     "color": { "value": pcolor },
-                    "shape": { "type": "circle" },
-                    "opacity": { "value": 0.2, "random": false },
-                    "size": { "value": 3, "random": true },
-                    "line_linked": { "enable": true, "distance": 150, "color": pcolor, "opacity": 0.1, "width": 1 },
-                    "move": { "enable": true, "speed": speedVal, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+                    "shape": { "type": shapeType },
+                    "opacity": { "value": shapeType === 'edge' ? 0.5 : 0.2, "random": false },
+                    "size": { "value": shapeType === 'edge' ? 5 : 3, "random": true },
+                    "line_linked": { "enable": !straight, "distance": 150, "color": pcolor, "opacity": 0.1, "width": 1 },
+                    "move": { "enable": true, "speed": speedVal, "direction": direction, "random": true, "straight": straight, "out_mode": "out", "bounce": false }
                 },
                 "interactivity": {
                     "detect_on": "canvas",
@@ -137,6 +271,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if(linkFullCard) {
         linkFullCard.checked = window.isFullCard;
         linkFullCard.addEventListener('change', e => { window.isFullCard = e.target.checked; localStorage.setItem('it-lab-fullcard', window.isFullCard); });
+    }
+
+    // Typography setup
+    const fontSelect = document.getElementById('ui-font');
+    if(fontSelect) {
+        fontSelect.value = savedFont;
+        fontSelect.addEventListener('change', (e) => {
+            localStorage.setItem('it-lab-font', e.target.value);
+            document.documentElement.style.setProperty('--ui-font', e.target.value);
+        });
+    }
+
+    // Weather particles toggle
+    const wFxToggle = document.getElementById('weather-fx-toggle');
+    if(wFxToggle) {
+        wFxToggle.checked = localStorage.getItem('it-lab-weather-fx') !== 'false';
+        wFxToggle.addEventListener('change', e => {
+            localStorage.setItem('it-lab-weather-fx', e.target.checked);
+            initParticles();
+        });
     }
 
     // UI Scale / Zoom setup
@@ -240,6 +394,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('modal-overlay')) {
             e.target.classList.remove('active');
         }
+    });
+    document.addEventListener('mousemove', (e) => {
+        if(e.target.closest('.card') || e.target.closest('.btn') || e.target.closest('.action-sm') || e.target.closest('.theme-dot')) {
+            if(!e.target.dataset.hovered) {
+                e.target.dataset.hovered = true;
+                window.playSound('hover');
+                e.target.addEventListener('mouseleave', () => e.target.dataset.hovered = '', {once: true});
+            }
+        }
+    });
+
+    const closeFolderBtn = document.getElementById('close-folder');
+    if(closeFolderBtn) closeFolderBtn.addEventListener('click', () => {
+        const modal = document.getElementById('folder-modal');
+        if(modal) modal.classList.remove('active');
     });
 
     themeDots.forEach(dot => {
@@ -451,6 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
             existingRipple.remove();
         }
         button.appendChild(circle);
+        window.playSound('click');
     };
 
     document.querySelectorAll('.btn, .icon-btn').forEach(btn => {
@@ -515,6 +685,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 generateCards();
                 initializeSearchAndFilters();
                 initializeAdminMode();
+                
+                const loader = document.getElementById('loader-overlay');
+                if(loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.classList.add('hidden'), 800);
+                }
             }, 500);
         })
         .catch(err => {
@@ -546,10 +722,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateCategoryTabs() {
         if (!categoryTabsContainer) return;
         
-        const types = new Set(dashboardServices.map(s => s.type || 'Autre'));
+        const types = new Set();
+        dashboardServices.forEach(s => {
+            if(s.type) s.type.split(',').forEach(t => types.add(t.trim().toLowerCase()));
+            else types.add('autre');
+        });
+        
+        let hasUsage = Object.keys(JSON.parse(localStorage.getItem('it-lab-usage') || '{}')).length > 0;
+        
         let tabsHtml = `<div class="tab-indicator"></div><button class="category-tab" data-category="all">Tous</button>`;
+        if(hasUsage) {
+            tabsHtml += `<button class="category-tab" data-category="top">🔥 Top Consultés</button>`;
+        }
         types.forEach(type => {
-            tabsHtml += `<button class="category-tab" data-category="${type.toLowerCase()}">${capitalize(type)}</button>`;
+            tabsHtml += `<button class="category-tab" data-category="${type}">${capitalize(type)}</button>`;
         });
         categoryTabsContainer.innerHTML = tabsHtml;
 
@@ -572,6 +758,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => moveIndicator(activeTab), 50);
+
+        // Custom Color Picker
+        const customColorPicker = document.getElementById('custom-color-picker');
+        if(customColorPicker) {
+            customColorPicker.value = savedTheme || '#00d2ff';
+            customColorPicker.addEventListener('input', (e) => {
+                const color = e.target.value;
+                setTheme(color);
+                themeDots.forEach(d => d.classList.remove('active'));
+            });
+        }
+
+        themeDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                themeDots.forEach(d => d.classList.remove('active'));
+                dot.classList.add('active');
+                
+                const color = dot.dataset.color;
+                if(customColorPicker) customColorPicker.value = color;
+                setTheme(color);
+                window.playSound('click');
+            });
+        });
 
         tabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
@@ -608,45 +817,86 @@ document.addEventListener('DOMContentLoaded', () => {
             return 0;
         });
 
-        dashboardServices.forEach(service => {
-            const card = document.createElement('div');
-            card.className = `card card-${service.type || 'default'}`;
-            card.dataset.service = service.name;
-            card.dataset.category = (service.type || 'Autre').toLowerCase();
-            card.dataset.id = service.id; // added for context menu
-            card.dataset.url = service.url || '';
-            
-            let iconHtml = '';
-            if (service.logo) {
-                iconHtml = `<img src="${service.logo}" alt="${service.name} logo" class="icon-logo">`;
-            } else if (service.icon) {
-                iconHtml = `<i data-lucide="${service.icon}" class="icon"></i>`;
-            } else {
-                iconHtml = `<i data-lucide="server" class="icon"></i>`;
-            }
+        let processedFolders = new Set();
 
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="card-icon-box">${iconHtml}</div>
-                    <div class="status-badge">
-                        <span class="status-dot"></span>
-                        <span class="status-text">...</span>
+        dashboardServices.forEach(service => {
+            if(service.folder && !document.body.classList.contains('admin-mode')) {
+                if(processedFolders.has(service.folder)) return;
+                processedFolders.add(service.folder);
+                
+                const card = document.createElement('div');
+                card.className = `card folder-card`;
+                card.dataset.category = (service.type || 'Autre').toLowerCase();
+                
+                const folderServices = dashboardServices.filter(s => s.folder === service.folder);
+                
+                card.innerHTML = `
+                    <div class="card-sparkline" style="background:var(--text-muted)"></div>
+                    <div class="card-header">
+                        <div class="card-icon-box"><i data-lucide="folder" class="icon"></i></div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <h3>${service.name}</h3>
-                    <p>${service.description}</p>
-                </div>
-                <div class="card-footer">
-                    <a href="${service.url}" class="btn btn-outline" target="${window.isNewTab ? '_blank' : '_self'}" rel="noopener noreferrer">Aperçu</a>
-                    <div class="action-bar">
-                        <div class="action-sm fav-btn ${service.favorite ? 'favorited' : ''}" data-tippy-content="Favori" data-id="${service.id}"><i data-lucide="star" style="width:16px;height:16px;" fill="${service.favorite ? '#f59e0b' : 'none'}"></i></div>
-                        <div class="action-sm edit-btn" data-tippy-content="Modifier" data-id="${service.id}"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></div>
-                        <div class="action-sm delete-btn" data-tippy-content="Supprimer" data-id="${service.id}"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></div>
+                    <div class="card-body">
+                        <h3>📁 ${service.folder}</h3>
+                        <p>${folderServices.length} éléments</p>
                     </div>
-                </div>
-            `;
-            gridContainer.appendChild(card);
+                    <div class="card-footer">
+                        <button class="btn btn-outline open-folder-btn" data-folder="${service.folder}"><i data-lucide="grid" style="width:16px;height:16px;"></i> Ouvrir Dossier</button>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            } else {
+                const card = document.createElement('div');
+                card.className = `card card-${service.type ? service.type.split(',')[0].trim() : 'default'}`;
+                card.dataset.service = service.name;
+                card.dataset.category = (service.type || 'Autre').toLowerCase();
+                card.dataset.id = service.id; // added for context menu
+                card.dataset.url = service.url || '';
+                
+                let iconHtml = '';
+                if (service.logo) {
+                    iconHtml = `<img src="${service.logo}" alt="${service.name} logo" class="icon-logo">`;
+                } else if (service.icon) {
+                    iconHtml = `<i data-lucide="${service.icon}" class="icon"></i>`;
+                } else {
+                    iconHtml = `<i data-lucide="server" class="icon"></i>`;
+                }
+
+                card.innerHTML = `
+                    <div class="card-sparkline"></div>
+                    <div class="card-header">
+                        <div class="card-icon-box">${iconHtml}</div>
+                        <div class="status-badge">
+                            <span class="status-dot"></span>
+                            <span class="status-text">...</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h3>${service.name}</h3>
+                        <p>${service.description}</p>
+                        ${service.folder && document.body.classList.contains('admin-mode') ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;"><i data-lucide="folder" style="width:12px;height:12px;vertical-align:-2px;"></i> ${service.folder}</div>` : ''}
+                    </div>
+                    <div class="card-footer">
+                        <a href="${service.url}" class="btn btn-outline" target="${window.isNewTab ? '_blank' : '_self'}" rel="noopener noreferrer">Aperçu</a>
+                        <div class="action-bar">
+                            <div class="action-sm fav-btn ${service.favorite ? 'favorited' : ''}" data-tippy-content="Favori" data-id="${service.id}"><i data-lucide="star" style="width:16px;height:16px;" fill="${service.favorite ? '#f59e0b' : 'none'}"></i></div>
+                            <div class="action-sm edit-btn" data-tippy-content="Modifier" data-id="${service.id}"><i data-lucide="edit-2" style="width:16px;height:16px;"></i></div>
+                            <div class="action-sm delete-btn" data-tippy-content="Supprimer" data-id="${service.id}"><i data-lucide="trash-2" style="width:16px;height:16px;"></i></div>
+                        </div>
+                    </div>
+                `;
+                
+                // Set usage badge overlay inside card header if it exists
+                const usageStats = JSON.parse(localStorage.getItem('it-lab-usage') || '{}');
+                if (usageStats[service.id]) {
+                    const badge = document.createElement('div');
+                    badge.className = 'top-badge';
+                    badge.textContent = usageStats[service.id];
+                    badge.style.display = 'none'; // Only show if we toggle "Top Consultés"? Very cool.
+                    card.querySelector('.card-header').appendChild(badge);
+                }
+
+                gridContainer.appendChild(card);
+            }
         });
 
         // Add the "Add New" card from template
@@ -718,11 +968,51 @@ document.addEventListener('DOMContentLoaded', () => {
             card.addEventListener('click', (e) => {
                 if (e.target.closest('.action-bar') || e.target.closest('a')) return;
                 
+                // Track usage
+                if(card.dataset.id && !card.classList.contains('folder-card')) {
+                    const clicks = JSON.parse(localStorage.getItem('it-lab-usage') || '{}');
+                    clicks[card.dataset.id] = (clicks[card.dataset.id] || 0) + 1;
+                    localStorage.setItem('it-lab-usage', JSON.stringify(clicks));
+                }
+
                 if (window.isFullCard && !document.body.classList.contains('admin-mode') && e.target.tagName !== 'A' && !e.target.closest('button')) {
                     const link = card.querySelector('a');
                     if(link) window.open(link.href, window.isNewTab ? '_blank' : '_self');
                 }
             });
+
+            const folderBtn = card.querySelector('.open-folder-btn');
+            if(folderBtn) {
+                folderBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const fname = folderBtn.dataset.folder;
+                    document.getElementById('folder-modal-title').textContent = `📁 ${fname}`;
+                    const fGrid = document.getElementById('folder-grid');
+                    fGrid.innerHTML = '';
+                    
+                    const folderItems = dashboardServices.filter(s => s.folder === fname);
+                    folderItems.forEach(item => {
+                        const fi = document.createElement('div');
+                        fi.className = 'card';
+                        fi.style.padding = '16px';
+                        let iHtml = item.logo ? `<img src="${item.logo}" class="icon-logo">` : `<i data-lucide="${item.icon || 'server'}" class="icon"></i>`;
+                        fi.innerHTML = `
+                            <div class="card-sparkline" style="height:30px;"></div>
+                            <div class="card-header" style="margin-bottom:12px;">
+                                <div class="card-icon-box" style="width:36px;height:36px;">${iHtml}</div>
+                                <h4>${item.name}</h4>
+                            </div>
+                            <div class="card-footer" style="padding-top:0; border:none; display:block;">
+                                <a href="${item.url}" class="btn btn-outline" target="${window.isNewTab ? '_blank' : '_self'}" style="width:100%; justify-content:center;">Ouvrir</a>
+                            </div>
+                        `;
+                        fGrid.appendChild(fi);
+                        fi.addEventListener('mouseenter', () => window.playSound('hover'));
+                    });
+                    lucide.createIcons();
+                    document.getElementById('folder-modal').classList.add('active');
+                });
+            }
 
             const editBtn = card.querySelector('.edit-btn');
             if (editBtn) {
@@ -780,13 +1070,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const term = searchInput ? searchInput.value.toLowerCase() : '';
         const addNewCard = document.getElementById('add-new-btn');
         
+        if (currentCategory === 'top') {
+            const usage = JSON.parse(localStorage.getItem('it-lab-usage') || '{}');
+            allCards.forEach(card => {
+                const uses = usage[card.dataset.id] || 0;
+                const badge = card.querySelector('.top-badge');
+                if (badge) badge.style.display = 'block';
+
+                if (uses > 0 && !card.classList.contains('folder-card')) {
+                    card.style.display = 'flex';
+                    card.style.order = -uses;
+                    card.style.opacity = '1';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            return;
+        }
+
         allCards.forEach(card => {
+            const badge = card.querySelector('.top-badge');
+            if (badge) badge.style.display = 'none';
+            card.style.order = 0;
+
             const name = card.querySelector('h3').textContent.toLowerCase();
             const desc = card.querySelector('p').textContent.toLowerCase();
-            const cat = card.dataset.category;
+            const catStr = card.dataset.category || '';
+            const catsArr = catStr.split(',').map(c => c.trim().toLowerCase());
             
             const matchSearch = name.includes(term) || desc.includes(term);
-            const matchCategory = currentCategory === 'all' || cat === currentCategory;
+            const matchCategory = currentCategory === 'all' || catsArr.includes(currentCategory);
 
             if (matchSearch && matchCategory) {
                 card.style.display = 'flex';
@@ -800,8 +1113,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeAdminMode() {
         const adminToggle = document.getElementById('admin-toggle');
-        const downloadBtn = document.getElementById('download-config');
+        const exportBtn = document.getElementById('export-profile');
+        const importBtn = document.getElementById('import-profile');
+        const importFile = document.getElementById('import-profile-file');
         
+        const pinSet = document.getElementById('admin-pin-set');
+        if(pinSet) {
+            pinSet.value = localStorage.getItem('it-lab-pin') || '';
+            pinSet.addEventListener('change', (e) => localStorage.setItem('it-lab-pin', e.target.value));
+        }
+
         if (adminToggle) {
             adminToggle.addEventListener('click', () => {
                 document.body.classList.toggle('admin-mode');
@@ -810,17 +1131,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminToggle.style.background = isAdmin ? 'var(--accent-main)' : '';
                 adminToggle.style.color = isAdmin ? 'var(--bg-dark)' : '';
                 
-                if(downloadBtn) {
-                    downloadBtn.style.display = isAdmin ? 'flex' : 'none';
-                }
+                if(exportBtn) exportBtn.style.display = isAdmin ? 'block' : 'none';
+                if(importBtn) importBtn.style.display = isAdmin ? 'block' : 'none';
                 
                 // Toggle drag & drop availability
                 if(sortableInstance) {
                     sortableInstance.option('disabled', !isAdmin);
                 }
+                
+                generateCards(); // Re-render to show hidden add buttons
             });
         }
 
+        if(exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                const profile = {};
+                for(let i=0; i<localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if(key.startsWith('it-lab-')) profile[key] = localStorage.getItem(key);
+                }
+                profile['dashboardServices'] = dashboardServices;
+                
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile));
+                const dlAnchorElem = document.createElement('a');
+                dlAnchorElem.setAttribute("href", dataStr);
+                dlAnchorElem.setAttribute("download", "profile.itlab");
+                dlAnchorElem.click();
+            });
+        }
+
+        if(importFile) {
+            importFile.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const profile = JSON.parse(evt.target.result);
+                        Object.keys(profile).forEach(k => {
+                            if(k.startsWith('it-lab-')) localStorage.setItem(k, profile[k]);
+                        });
+                        alert("Profil IT-Lab importé ! (Note: Rechargez et vérifiez votre config.json côté serveur si de nouveaux services ont été ajoutés)");
+                        window.location.reload();
+                    } catch(err) { alert("Fichier .itlab invalide"); }
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        const downloadBtn = document.getElementById('download-config');
         if (downloadBtn) {
             downloadBtn.addEventListener('click', () => {
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dashboardServices, null, 4));
@@ -852,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const descField = document.getElementById('service-desc');
         const urlField = document.getElementById('service-url');
         const iconField = document.getElementById('service-icon');
+        const folderField = document.getElementById('service-folder');
 
         if (serviceId) {
             const service = dashboardServices.find(s => String(s.id) === String(serviceId));
@@ -863,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 descField.value = service.description || '';
                 urlField.value = service.url || '';
                 iconField.value = service.logo || service.icon || '';
+                if(folderField) folderField.value = service.folder || '';
             }
         } else {
             title.textContent = "Ajouter un Service";
@@ -886,10 +1247,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const newService = {
             id: idVal || 'srv-' + Date.now(),
             name: document.getElementById('service-name').value,
-            type: document.getElementById('service-type').value.toLowerCase().replace(/\s+/g, '-'),
+            type: document.getElementById('service-type').value.toLowerCase(),
             description: document.getElementById('service-desc').value,
             url: document.getElementById('service-url').value,
         };
+        const folderVal = document.getElementById('service-folder') ? document.getElementById('service-folder').value.trim() : '';
+        if(folderVal) newService.folder = folderVal;
 
         if(isUrl) {
             newService.logo = iconVal;
@@ -1187,11 +1550,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Custom Cursor ===
     const cursorDot = document.querySelector('.custom-cursor-dot');
-    const cursorRing = document.querySelector('.custom-cursor-ring');
 
-    if (cursorDot && cursorRing && window.matchMedia('(pointer: fine)').matches) {
+    if (cursorDot && window.matchMedia('(pointer: fine)').matches) {
         let mouseX = 0, mouseY = 0;
-        let ringX = 0, ringY = 0;
 
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
@@ -1199,16 +1560,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cursorDot.style.left = mouseX + 'px';
             cursorDot.style.top  = mouseY + 'px';
         });
-
-        // Ring follows with smooth lerp
-        function animateCursor() {
-            ringX += (mouseX - ringX) * 0.12;
-            ringY += (mouseY - ringY) * 0.12;
-            cursorRing.style.left = ringX + 'px';
-            cursorRing.style.top  = ringY + 'px';
-            requestAnimationFrame(animateCursor);
-        }
-        animateCursor();
 
         // Hover state on interactive elements
         document.querySelectorAll('a, button, .card, .category-tab, .theme-dot, .action-sm').forEach(el => {
@@ -1219,11 +1570,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide cursor when leaving window
         document.addEventListener('mouseleave', () => {
             cursorDot.style.opacity = '0';
-            cursorRing.style.opacity = '0';
         });
         document.addEventListener('mouseenter', () => {
             cursorDot.style.opacity = '1';
-            cursorRing.style.opacity = '1';
         });
     }
 

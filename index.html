@@ -5,13 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satel Lab | Infrastructure</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#09090b">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
     
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&family=Fira+Code:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Tippy.js Animations -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
@@ -22,10 +24,33 @@
 </head>
 
 <body>
+    <!-- PIN Lock Screen -->
+    <div id="pin-lock-overlay" class="pin-lock-overlay">
+        <div class="pin-lock-content">
+            <i data-lucide="lock" style="width:48px;height:48px;color:var(--accent-main);margin-bottom:24px;"></i>
+            <h2>Dashboard Verrouillé</h2>
+            <p style="color:var(--text-secondary); margin-bottom:24px;">Entrez votre code PIN pour accéder à l'infrastructure</p>
+            <div class="pin-inputs" id="pin-inputs">
+                <input type="password" maxlength="1" class="pin-digit" autofocus>
+                <input type="password" maxlength="1" class="pin-digit">
+                <input type="password" maxlength="1" class="pin-digit">
+                <input type="password" maxlength="1" class="pin-digit">
+            </div>
+            <p id="pin-error" style="color:#ef4444; font-size:0.85rem; margin-top:12px; display:none;">Code PIN incorrect</p>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loader-overlay" class="loader-overlay">
+        <div class="loader-content">
+            <i data-lucide="hexagon" class="loader-logo"></i>
+            <div class="loader-pulse"></div>
+        </div>
+    </div>
+
     <!-- Premium Accents -->
     <div class="aurora-bg"></div>
     <div class="custom-cursor-dot"></div>
-    <div class="custom-cursor-ring"></div>
 
     <!-- Interactive Background -->
     <div id="particles-js" class="particles-bg"></div>
@@ -107,16 +132,27 @@
                 <div class="settings-group" style="display:flex; flex-direction:column; gap:16px;">
                     <div>
                         <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Couleur d'accentuation</label>
-                        <div class="theme-options">
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Couleur de l'interface (Accent)</label>
+                        <div class="theme-options" style="align-items:center;">
+                            <input type="color" id="custom-color-picker" value="#00d2ff" style="width:32px; height:32px; border:none; padding:0; cursor:pointer; background:transparent;">
                             <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff"></div>
                             <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb"></div>
                             <div class="theme-dot" style="background: #00f260;" data-color="#00f260"></div>
                             <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e"></div>
                             <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347"></div>
                             <div class="theme-dot" style="background: #f12711;" data-color="#f12711"></div>
-                            <div class="theme-dot" style="background: #ffffff;" data-color="#ffffff"></div>
-                            <div class="theme-dot" style="background: #a8ff78;" data-color="#a8ff78"></div>
                         </div>
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Typographie (Police d'écriture)</label>
+                        <select id="ui-font" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
+                            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta (Défaut)</option>
+                            <option value="'Inter', sans-serif">Inter (Minimaliste)</option>
+                            <option value="'Outfit', sans-serif">Outfit (Moderne)</option>
+                            <option value="'Roboto', sans-serif">Roboto (Classique)</option>
+                            <option value="'Fira Code', monospace">Fira Code (Technique)</option>
+                        </select>
                     </div>
                     <div>
                         <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Mode de couleur</label>
@@ -173,6 +209,14 @@
                 <h4>Performances & Arrière-plan</h4>
                 <div class="perf-options" style="display: flex; flex-direction: column; gap: 16px;">
                     <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="volume-2" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Effets sonores (UI Sounds)</span>
+                        <input type="checkbox" id="ui-sounds-toggle" style="width:18px; height:18px; cursor:pointer;">
+                    </label>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <span><i data-lucide="cloud-rain" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Météo immersive (Particules distordues)</span>
+                        <input type="checkbox" id="weather-fx-toggle" style="width:18px; height:18px; cursor:pointer;" checked>
+                    </label>
+                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
                         <span><i data-lucide="zap" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Mode Économie d'Énergie</span>
                         <input type="checkbox" id="perf-mode-toggle" style="width:18px; height:18px; cursor:pointer;">
                     </label>
@@ -208,12 +252,21 @@
                         <option value="duckduckgo">DuckDuckGo</option>
                     </select>
 
+                    <label style="display:block; margin-top: 10px; font-size:0.85rem; color:var(--text-secondary)">Code PIN de Verrouillage (Vide = Désactivé)</label>
+                    <input type="password" id="admin-pin-set" placeholder="Ex: 1234" maxlength="4" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none; margin-bottom:10px;">
+
                     <button id="admin-toggle" class="btn btn-outline" style="width:100%;">
                         <i data-lucide="shield-alert"></i> Menu Administrateur
                     </button>
-                    <button id="download-config" class="btn btn-primary" style="width:100%; display:none;">
-                        <i data-lucide="download"></i> Sauvegarder Config
-                    </button>
+                    <div style="display:flex; gap:10px; margin-top:10px;" id="admin-import-export-wrapper">
+                        <button id="export-profile" class="btn btn-primary" style="flex:1; display:none;">
+                            <i data-lucide="download"></i> Exporter Profil
+                        </button>
+                        <button id="import-profile" class="btn btn-outline" style="flex:1; display:none;" onclick="document.getElementById('import-profile-file').click();">
+                            <i data-lucide="upload"></i> Importer
+                        </button>
+                        <input type="file" id="import-profile-file" style="display:none" accept=".itlab">
+                    </div>
                     <button id="reset-data" class="btn btn-outline" style="width:100%; color:#ef4444; border-color:#ef4444; margin-top:10px;">
                         <i data-lucide="trash-2"></i> Réinitialiser toutes mes préférences
                     </button>
@@ -235,8 +288,12 @@
                     <input type="text" id="service-name" required placeholder="Ex: XCP-NG 01">
                 </div>
                 <div class="form-group">
-                    <label>Catégorie / Type</label>
-                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation">
+                    <label>Tags / Catégories (séparés par virgule)</label>
+                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation, Production">
+                </div>
+                <div class="form-group">
+                    <label>Dossier optionnel (Mac/iOS style)</label>
+                    <input type="text" id="service-folder" placeholder="Ex: Infrastructure (laissez vide pour aucun)">
                 </div>
                 <div class="form-group">
                     <label>Description courte</label>
@@ -255,6 +312,17 @@
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Folder View Modal -->
+    <div id="folder-modal" class="modal-overlay folder-modal-overlay">
+        <div class="folder-content">
+            <h2 id="folder-modal-title" style="margin-bottom: 24px; text-align: center; color: var(--text-primary);">Dossier</h2>
+            <div id="folder-grid" class="grid-container" style="max-height: 60vh; overflow-y: auto; padding: 10px;">
+                <!-- Internal cards go here -->
+            </div>
+            <button id="close-folder" class="btn btn-outline" style="margin-top: 24px; width: 100%;"><i data-lucide="x"></i> Fermer le dossier</button>
         </div>
     </div>
 
@@ -308,6 +376,19 @@
             </div>
         </div>
     </div>
+
+    <!-- Scratchpad Widget -->
+    <div id="scratchpad-widget" class="scratchpad-widget">
+        <div class="scratchpad-header">
+            <h4 style="display:flex; align-items:center; gap:8px;"><i data-lucide="edit-3" style="width:18px;height:18px;"></i> Bloc-Notes Rapide</h4>
+            <button class="icon-btn action-sm" id="close-scratchpad" style="width:24px;height:24px;"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+        </div>
+        <textarea id="scratchpad-content" placeholder="Collez vos mémos, configurations, IPs temporaires..&#10;Contenu sauvegardé automatiquement !"></textarea>
+    </div>
+    
+    <button id="scratchpad-fab" class="scratchpad-fab" data-tippy-content="Ouvrir le Bloc-Notes">
+        <i data-lucide="pen-tool"></i>
+    </button>
 
     <!-- External Libs -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
