@@ -5,19 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satel Lab | Infrastructure</title>
+    <meta name="description" content="Tableau de bord d'infrastructure Satel Lab — accès centralisé aux services réseau.">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#09090b">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&family=Fira+Code:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    
+
     <!-- Tippy.js Animations -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
@@ -25,50 +26,50 @@
 
 <body>
     <!-- PIN Lock Screen -->
-    <div id="pin-lock-overlay" class="pin-lock-overlay">
+    <div id="pin-lock-overlay" class="pin-lock-overlay" role="dialog" aria-modal="true" aria-label="Verrouillage par PIN">
         <div class="pin-lock-content">
-            <i data-lucide="lock" style="width:48px;height:48px;color:var(--accent-main);margin-bottom:24px;"></i>
+            <i data-lucide="lock" class="pin-lock-icon"></i>
             <h2>Dashboard Verrouillé</h2>
-            <p style="color:var(--text-secondary); margin-bottom:24px;">Entrez votre code PIN pour accéder à l'infrastructure</p>
+            <p class="pin-lock-subtitle">Entrez votre code PIN pour accéder à l'infrastructure</p>
             <div class="pin-inputs" id="pin-inputs">
-                <input type="password" maxlength="1" class="pin-digit" autofocus>
-                <input type="password" maxlength="1" class="pin-digit">
-                <input type="password" maxlength="1" class="pin-digit">
-                <input type="password" maxlength="1" class="pin-digit">
+                <input type="password" maxlength="1" class="pin-digit" autofocus aria-label="Chiffre 1">
+                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 2">
+                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 3">
+                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 4">
             </div>
-            <p id="pin-error" style="color:#ef4444; font-size:0.85rem; margin-top:12px; display:none;">Code PIN incorrect</p>
+            <p id="pin-error" class="pin-error" aria-live="polite">Code PIN incorrect</p>
         </div>
     </div>
 
     <!-- Loading Screen -->
-    <div id="loader-overlay" class="loader-overlay">
+    <div id="loader-overlay" class="loader-overlay" role="status" aria-label="Chargement en cours">
         <div class="loader-content">
             <i data-lucide="hexagon" class="loader-logo"></i>
             <div class="loader-pulse"></div>
         </div>
     </div>
 
-    <!-- Premium Accents -->
-    <div class="aurora-bg"></div>
-    <div class="custom-cursor-dot"></div>
+    <!-- Aurora Background -->
+    <div class="aurora-bg" aria-hidden="true"></div>
+    <!-- Custom Cursor -->
+    <div class="custom-cursor-dot" aria-hidden="true"></div>
+    <!-- Particles Background -->
+    <div id="particles-js" class="particles-bg" aria-hidden="true"></div>
 
-    <!-- Interactive Background -->
-    <div id="particles-js" class="particles-bg"></div>
-
-    <!-- Modern Top Navigation -->
-    <nav class="top-nav">
+    <!-- Top Navigation -->
+    <nav class="top-nav" aria-label="Navigation principale">
         <div class="nav-left">
             <div class="logo">
-                <div class="logo-icon"><i data-lucide="hexagon"></i></div>
+                <div class="logo-icon" aria-hidden="true"><i data-lucide="hexagon"></i></div>
                 <div class="logo-text">
                     <h1>Satel Lab</h1>
                     <span id="greeting" class="subtitle">Bonjour, Administrateur</span>
                 </div>
             </div>
         </div>
-        
+
         <div class="nav-center">
-            <button class="search-trigger" id="search-trigger" data-tippy-content="Recherche Globale">
+            <button class="search-trigger" id="search-trigger" data-tippy-content="Recherche Globale (Ctrl+K)" aria-label="Ouvrir la recherche">
                 <div class="search-trigger-content">
                     <i data-lucide="search"></i>
                     <span>Rechercher...</span>
@@ -76,21 +77,22 @@
                 <kbd>Ctrl K</kbd>
             </button>
         </div>
-        
+
         <div class="nav-right">
-            <div class="nav-stats" style="flex-wrap: nowrap; white-space: nowrap;">
-                <span id="weather-widget" class="weather-widget" data-tippy-content="Météo locale" style="display:flex; align-items:center; gap:6px; color:var(--accent-main); cursor:pointer;">
-                    <i data-lucide="cloud-sun" style="width:16px;height:16px;"></i> <span>--°C</span>
-                </span>
-                <span class="divider" style="margin-right:8px;"></span>
-                <span id="current-time">00:00</span>
-                <span class="divider"></span>
-                <span id="current-date">--/--</span>
+            <div class="nav-stats">
+                <button id="weather-widget" class="weather-widget" data-tippy-content="Météo locale" aria-label="Météo locale">
+                    <i data-lucide="cloud-sun" class="weather-icon"></i>
+                    <span id="weather-text">--°C</span>
+                </button>
+                <span class="divider" aria-hidden="true"></span>
+                <time id="current-time" aria-live="polite">00:00</time>
+                <span class="divider" aria-hidden="true"></span>
+                <time id="current-date">--/--</time>
             </div>
-            <button id="theme-toggle" class="icon-btn" data-tippy-content="Basculer le thème">
+            <button id="theme-toggle" class="icon-btn" data-tippy-content="Basculer le thème" aria-label="Basculer le thème">
                 <i data-lucide="sun" id="theme-icon"></i>
             </button>
-            <button id="settings-toggle" class="icon-btn" data-tippy-content="Personnalisation & Admin">
+            <button id="settings-toggle" class="icon-btn" data-tippy-content="Personnalisation & Admin" aria-label="Ouvrir les paramètres">
                 <i data-lucide="settings"></i>
             </button>
         </div>
@@ -98,16 +100,16 @@
 
     <!-- Main Content -->
     <main class="dashboard-container">
-        <!-- Minimal Category Tabs -->
+        <!-- Category Tabs -->
         <div class="category-tabs-wrapper">
-            <div class="category-tabs" id="category-tabs">
-                <button class="category-tab active" data-category="all">Tous</button>
+            <div class="category-tabs" id="category-tabs" role="tablist" aria-label="Filtrer par catégorie">
+                <button class="category-tab active" data-category="all" role="tab" aria-selected="true">Tous</button>
                 <!-- Generated dynamically -->
             </div>
         </div>
 
         <!-- Services Grid -->
-        <section class="grid-container" id="services-grid">
+        <section class="grid-container" id="services-grid" aria-label="Services de l'infrastructure">
             <!-- Cards generated dynamically -->
         </section>
 
@@ -117,195 +119,242 @@
         </footer>
     </main>
 
-    <!-- Modals & Overlays -->
+    <!-- ===================== MODALS & OVERLAYS ===================== -->
 
-    <!-- Settings & Admin Modal -->
-    <div id="settings-modal" class="modal-overlay">
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Paramètres">
         <div class="modal-content settings-content">
             <div class="modal-header">
                 <h2>Paramètres du Lab</h2>
-                <button class="icon-btn close-btn" id="close-settings"><i data-lucide="x"></i></button>
+                <button class="icon-btn close-btn" id="close-settings" aria-label="Fermer les paramètres">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
-            
-            <div class="settings-section">
-                <h4>Apparence & Thème</h4>
-                <div class="settings-group" style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Couleur d'accentuation</label>
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Couleur de l'interface (Accent)</label>
-                        <div class="theme-options" style="align-items:center;">
-                            <input type="color" id="custom-color-picker" value="#00d2ff" style="width:32px; height:32px; border:none; padding:0; cursor:pointer; background:transparent;">
-                            <div class="theme-dot active" style="background: #00d2ff;" data-color="#00d2ff"></div>
-                            <div class="theme-dot" style="background: #9d50bb;" data-color="#9d50bb"></div>
-                            <div class="theme-dot" style="background: #00f260;" data-color="#00f260"></div>
-                            <div class="theme-dot" style="background: #ff9a9e;" data-color="#ff9a9e"></div>
-                            <div class="theme-dot" style="background: #ffb347;" data-color="#ffb347"></div>
-                            <div class="theme-dot" style="background: #f12711;" data-color="#f12711"></div>
+
+            <div class="settings-grid">
+
+                <!-- Colonne gauche -->
+                <div class="settings-column">
+
+                    <!-- Apparence & Thème -->
+                    <section class="settings-section">
+                        <h4 class="settings-section-title">Apparence & Thème</h4>
+
+                        <div class="settings-group">
+                            <label class="settings-label">Couleur de l'interface (Accent)</label>
+                            <div class="theme-options">
+                                <input type="color" id="custom-color-picker" value="#00d2ff" class="color-picker-input" aria-label="Couleur personnalisée">
+                                <div class="theme-dot active" style="background:#00d2ff;" data-color="#00d2ff" title="#00d2ff"></div>
+                                <div class="theme-dot" style="background:#9d50bb;" data-color="#9d50bb" title="#9d50bb"></div>
+                                <div class="theme-dot" style="background:#00f260;" data-color="#00f260" title="#00f260"></div>
+                                <div class="theme-dot" style="background:#ff9a9e;" data-color="#ff9a9e" title="#ff9a9e"></div>
+                                <div class="theme-dot" style="background:#ffb347;" data-color="#ffb347" title="#ffb347"></div>
+                                <div class="theme-dot" style="background:#f12711;" data-color="#f12711" title="#f12711"></div>
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Typographie (Police d'écriture)</label>
-                        <select id="ui-font" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                            <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta (Défaut)</option>
-                            <option value="'Inter', sans-serif">Inter (Minimaliste)</option>
-                            <option value="'Outfit', sans-serif">Outfit (Moderne)</option>
-                            <option value="'Roboto', sans-serif">Roboto (Classique)</option>
-                            <option value="'Fira Code', monospace">Fira Code (Technique)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Mode de couleur</label>
-                        <select id="color-match-mode" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                            <option value="auto">Auto (Synchronisé au système)</option>
-                            <option value="dark">Toujours Sombre</option>
-                            <option value="light">Toujours Clair</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Échelle de l'interface (Zoom)</label>
-                        <select id="ui-scale" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                            <option value="compact">Compacte (Petite)</option>
-                            <option value="standard" selected>Standard</option>
-                            <option value="large">Large (Grande)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
 
-            <div class="settings-section">
-                <h4>Affichage & Navigation</h4>
-                <div class="settings-group" style="display:flex; flex-direction:column; gap:16px;">
-                    <div>
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Disposition des cartes</label>
-                        <div class="layout-options" style="display: flex; gap: 10px;">
-                            <button class="btn btn-outline active" id="layout-grid" style="flex:1;"><i data-lucide="layout-grid"></i> Grille</button>
-                            <button class="btn btn-outline" id="layout-list" style="flex:1;"><i data-lucide="list"></i> Liste</button>
+                        <div class="settings-group">
+                            <label for="ui-font" class="settings-label">Typographie</label>
+                            <select id="ui-font" class="form-select">
+                                <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta (Défaut)</option>
+                                <option value="'Inter', sans-serif">Inter (Minimaliste)</option>
+                                <option value="'Outfit', sans-serif">Outfit (Moderne)</option>
+                                <option value="'Roboto', sans-serif">Roboto (Classique)</option>
+                                <option value="'Fira Code', monospace">Fira Code (Technique)</option>
+                            </select>
                         </div>
-                    </div>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="clock" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Horloge 24h</span>
-                        <input type="checkbox" id="time-24h" checked style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="timer" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Afficher les secondes</span>
-                        <input type="checkbox" id="time-seconds" checked style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="external-link" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Liens dans un nouvel onglet</span>
-                        <input type="checkbox" id="link-newtab" checked style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="mouse-pointer-click" style="width:16px;vertical-align:-3px;margin-right:6px;"></i> Clic sur toute la carte ouvre le lien</span>
-                        <input type="checkbox" id="link-fullcard" checked style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    <button id="kiosk-mode-btn" class="btn btn-outline" style="width:100%; border-color:var(--accent-main); color:var(--accent-main);">
-                        <i data-lucide="monitor"></i> Activer Mode Kiosque Plein Écran
-                    </button>
-                </div>
-            </div>
 
-            <div class="settings-section">
-                <h4>Performances & Arrière-plan</h4>
-                <div class="perf-options" style="display: flex; flex-direction: column; gap: 16px;">
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="volume-2" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Effets sonores (UI Sounds)</span>
-                        <input type="checkbox" id="ui-sounds-toggle" style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="cloud-rain" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Météo immersive (Particules distordues)</span>
-                        <input type="checkbox" id="weather-fx-toggle" style="width:18px; height:18px; cursor:pointer;" checked>
-                    </label>
-                    <label style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                        <span><i data-lucide="zap" style="width:16px;vertical-align:-3px;margin-right:6px"></i> Mode Économie d'Énergie</span>
-                        <input type="checkbox" id="perf-mode-toggle" style="width:18px; height:18px; cursor:pointer;">
-                    </label>
-                    
-                    <div class="settings-group" style="background:var(--bg-base); padding: 12px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-                        <label style="display:block; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">URL Fond d'écran (Image / HTTPS)</label>
-                        <input type="url" id="custom-wallpaper" placeholder="https://..." style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                        
-                        <label style="display:block; margin-top:12px; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Densité des Particules</label>
-                        <select id="particles-density" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                            <option value="disabled">Désactivé</option>
-                            <option value="low">Faible</option>
-                            <option value="normal" selected>Normal</option>
-                            <option value="high">Élevé</option>
-                        </select>
-                        <label style="display:block; margin-top:12px; margin-bottom:8px; font-size:0.85rem; color:var(--text-secondary)">Vitesse des Particules</label>
-                        <select id="particles-speed" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none;">
-                            <option value="0.5">Lent</option>
-                            <option value="1.5" selected>Normal</option>
-                            <option value="3">Rapide</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+                        <div class="settings-group">
+                            <label for="color-match-mode" class="settings-label">Mode de couleur</label>
+                            <select id="color-match-mode" class="form-select">
+                                <option value="auto">Auto (système)</option>
+                                <option value="dark">Toujours Sombre</option>
+                                <option value="light">Toujours Clair</option>
+                            </select>
+                        </div>
 
-            <div class="settings-section">
-                <h4>Données & Administration</h4>
-                <div class="admin-actions" style="display:flex; flex-direction:column; gap:10px;">
-                    <label style="display:block; font-size:0.85rem; color:var(--text-secondary)">Moteur de recherche de secours (Recherche Web Ctrl+K)</label>
-                    <select id="search-fallback" class="form-select" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none; margin-bottom:10px;">
-                        <option value="none">Aucun</option>
-                        <option value="google" selected>Google</option>
-                        <option value="duckduckgo">DuckDuckGo</option>
-                    </select>
+                        <div class="settings-group">
+                            <label for="ui-scale" class="settings-label">Échelle de l'interface</label>
+                            <select id="ui-scale" class="form-select">
+                                <option value="compact">Compacte</option>
+                                <option value="standard" selected>Standard</option>
+                                <option value="large">Large</option>
+                            </select>
+                        </div>
+                    </section>
 
-                    <label style="display:block; margin-top: 10px; font-size:0.85rem; color:var(--text-secondary)">Code PIN de Verrouillage (Vide = Désactivé)</label>
-                    <input type="password" id="admin-pin-set" placeholder="Ex: 1234" maxlength="4" style="width:100%; padding:8px; background:var(--bg-elevated); border:1px solid var(--border-strong); color:var(--text-primary); border-radius:var(--radius-sm); outline:none; margin-bottom:10px;">
+                    <!-- Affichage & Navigation -->
+                    <section class="settings-section">
+                        <h4 class="settings-section-title">Affichage & Navigation</h4>
+                        <div class="settings-group">
+                            <label class="settings-label">Disposition des cartes</label>
+                            <div class="layout-options">
+                                <button class="btn btn-outline active" id="layout-grid">
+                                    <i data-lucide="layout-grid"></i> Grille
+                                </button>
+                                <button class="btn btn-outline" id="layout-list">
+                                    <i data-lucide="list"></i> Liste
+                                </button>
+                            </div>
+                        </div>
 
-                    <button id="admin-toggle" class="btn btn-outline" style="width:100%;">
-                        <i data-lucide="shield-alert"></i> Menu Administrateur
-                    </button>
-                    <div style="display:flex; gap:10px; margin-top:10px;" id="admin-import-export-wrapper">
-                        <button id="export-profile" class="btn btn-primary" style="flex:1; display:none;">
-                            <i data-lucide="download"></i> Exporter Profil
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="clock" class="settings-icon"></i> Horloge 24h
+                            </span>
+                            <input type="checkbox" id="time-24h" checked>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="timer" class="settings-icon"></i> Afficher les secondes
+                            </span>
+                            <input type="checkbox" id="time-seconds" checked>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="external-link" class="settings-icon"></i> Liens dans un nouvel onglet
+                            </span>
+                            <input type="checkbox" id="link-newtab" checked>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="mouse-pointer-click" class="settings-icon"></i> Clic sur la carte ouvre le lien
+                            </span>
+                            <input type="checkbox" id="link-fullcard" checked>
+                        </label>
+
+                        <button id="kiosk-mode-btn" class="btn btn-kiosk">
+                            <i data-lucide="monitor"></i> Activer Mode Kiosque
                         </button>
-                        <button id="import-profile" class="btn btn-outline" style="flex:1; display:none;" onclick="document.getElementById('import-profile-file').click();">
-                            <i data-lucide="upload"></i> Importer
+                    </section>
+
+                </div>
+
+                <!-- Colonne droite -->
+                <div class="settings-column">
+
+                    <!-- Performances & Arrière-plan -->
+                    <section class="settings-section">
+                        <h4 class="settings-section-title">Performances & Arrière-plan</h4>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="volume-2" class="settings-icon"></i> Effets sonores
+                            </span>
+                            <input type="checkbox" id="ui-sounds-toggle">
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="cloud-rain" class="settings-icon"></i> Météo immersive
+                            </span>
+                            <input type="checkbox" id="weather-fx-toggle" checked>
+                        </label>
+
+                        <label class="settings-toggle-row">
+                            <span class="settings-toggle-label">
+                                <i data-lucide="zap" class="settings-icon"></i> Mode Économie d'Énergie
+                            </span>
+                            <input type="checkbox" id="perf-mode-toggle">
+                        </label>
+
+                        <div class="settings-sub-group">
+                            <label for="custom-wallpaper" class="settings-label">Fond d'écran (URL)</label>
+                            <input type="url" id="custom-wallpaper" placeholder="https://..." class="form-input">
+
+                            <label for="particles-density" class="settings-label settings-label-mt">Densité des Particules</label>
+                            <select id="particles-density" class="form-select">
+                                <option value="disabled">Désactivé</option>
+                                <option value="low">Faible</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">Élevé</option>
+                            </select>
+
+                            <label for="particles-speed" class="settings-label settings-label-mt">Vitesse des Particules</label>
+                            <select id="particles-speed" class="form-select">
+                                <option value="0.5">Lent</option>
+                                <option value="1.5" selected>Normal</option>
+                                <option value="3">Rapide</option>
+                            </select>
+                        </div>
+                    </section>
+
+                    <!-- Données & Administration -->
+                    <section class="settings-section">
+                        <h4 class="settings-section-title">Données & Administration</h4>
+
+                        <div class="settings-group">
+                            <label for="search-fallback" class="settings-label">Moteur de recherche (Ctrl+K)</label>
+                            <select id="search-fallback" class="form-select">
+                                <option value="none">Aucun</option>
+                                <option value="google" selected>Google</option>
+                                <option value="duckduckgo">DuckDuckGo</option>
+                            </select>
+                        </div>
+
+                        <div class="settings-group">
+                            <label for="admin-pin-set" class="settings-label">Code PIN (vide = désactivé)</label>
+                            <input type="password" id="admin-pin-set" placeholder="Ex: 1234" maxlength="4" class="form-input">
+                        </div>
+
+                        <button id="admin-toggle" class="btn btn-outline btn-full">
+                            <i data-lucide="shield-alert"></i> Mode Administrateur
                         </button>
-                        <input type="file" id="import-profile-file" style="display:none" accept=".itlab">
-                    </div>
-                    <button id="reset-data" class="btn btn-outline" style="width:100%; color:#ef4444; border-color:#ef4444; margin-top:10px;">
-                        <i data-lucide="trash-2"></i> Réinitialiser toutes mes préférences
-                    </button>
+
+                        <div class="btn-group" id="admin-import-export-wrapper">
+                            <button id="export-profile" class="btn btn-primary btn-hidden" aria-label="Exporter le profil">
+                                <i data-lucide="download"></i> Exporter Profil
+                            </button>
+                            <button id="import-profile" class="btn btn-outline btn-hidden" onclick="document.getElementById('import-profile-file').click();" aria-label="Importer un profil">
+                                <i data-lucide="upload"></i> Importer
+                            </button>
+                            <input type="file" id="import-profile-file" class="visually-hidden" accept=".itlab">
+                        </div>
+
+                        <button id="reset-data" class="btn btn-danger btn-full">
+                            <i data-lucide="trash-2"></i> Réinitialiser mes préférences
+                        </button>
+                    </section>
+
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Admin Form Modal -->
-    <div id="admin-modal" class="modal-overlay">
+    <div id="admin-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modal-title">Ajouter un Service</h2>
             </div>
-            <form id="service-form">
+            <form id="service-form" novalidate>
                 <input type="hidden" id="service-id">
                 <div class="form-group">
-                    <label>Nom du service</label>
-                    <input type="text" id="service-name" required placeholder="Ex: XCP-NG 01">
+                    <label for="service-name">Nom du service</label>
+                    <input type="text" id="service-name" required placeholder="Ex: XCP-NG 01" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>Tags / Catégories (séparés par virgule)</label>
-                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation, Production">
+                    <label for="service-type">Tags / Catégories (séparés par virgule)</label>
+                    <input type="text" id="service-type" required placeholder="Ex: Virtualisation, Production" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>Dossier optionnel (Mac/iOS style)</label>
-                    <input type="text" id="service-folder" placeholder="Ex: Infrastructure (laissez vide pour aucun)">
+                    <label for="service-folder">Dossier optionnel</label>
+                    <input type="text" id="service-folder" placeholder="Ex: Infrastructure (vide = aucun)" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>Description courte</label>
-                    <input type="text" id="service-desc" required placeholder="Ex: Serveur principal">
+                    <label for="service-desc">Description courte</label>
+                    <input type="text" id="service-desc" required placeholder="Ex: Serveur principal" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>URL d'accès</label>
+                    <label for="service-url">URL d'accès</label>
                     <input type="url" id="service-url" required placeholder="https://...">
                 </div>
                 <div class="form-group">
-                    <label>Icône (Lucide) ou Logo (URL SVG)</label>
-                    <input type="text" id="service-icon" required placeholder="ex: server">
+                    <label for="service-icon">Icône (Lucide) ou Logo (URL)</label>
+                    <input type="text" id="service-icon" required placeholder="ex: server  ou  https://...">
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" id="btn-cancel-modal">Annuler</button>
@@ -316,27 +365,29 @@
     </div>
 
     <!-- Folder View Modal -->
-    <div id="folder-modal" class="modal-overlay folder-modal-overlay">
+    <div id="folder-modal" class="modal-overlay folder-modal-overlay" role="dialog" aria-modal="true">
         <div class="folder-content">
-            <h2 id="folder-modal-title" style="margin-bottom: 24px; text-align: center; color: var(--text-primary);">Dossier</h2>
-            <div id="folder-grid" class="grid-container" style="max-height: 60vh; overflow-y: auto; padding: 10px;">
-                <!-- Internal cards go here -->
+            <h2 id="folder-modal-title" class="folder-modal-title">Dossier</h2>
+            <div id="folder-grid" class="grid-container folder-grid">
+                <!-- Internal cards -->
             </div>
-            <button id="close-folder" class="btn btn-outline" style="margin-top: 24px; width: 100%;"><i data-lucide="x"></i> Fermer le dossier</button>
+            <button id="close-folder" class="btn btn-outline btn-full">
+                <i data-lucide="x"></i> Fermer le dossier
+            </button>
         </div>
     </div>
 
     <!-- Command Palette (Ctrl+K) -->
-    <div id="command-palette-overlay" class="cmd-overlay">
-        <div class="cmd-palette">
+    <div id="command-palette-overlay" class="cmd-overlay" role="dialog" aria-modal="true" aria-label="Palette de commandes">
+        <div class="cmd-palette" role="search">
             <div class="cmd-search">
-                <i data-lucide="search"></i>
-                <input type="text" id="cmd-input" placeholder="Que cherchez-vous ?" autocomplete="off">
+                <i data-lucide="search" aria-hidden="true"></i>
+                <input type="text" id="cmd-input" placeholder="Que cherchez-vous ?" autocomplete="off" aria-label="Rechercher un service">
             </div>
-            <ul id="cmd-results" class="cmd-results">
-                <!-- Résultats dynamiques -->
+            <ul id="cmd-results" class="cmd-results" role="listbox" aria-label="Résultats de recherche">
+                <!-- Dynamic results -->
             </ul>
-            <div class="cmd-footer">
+            <div class="cmd-footer" aria-hidden="true">
                 <span><kbd>↑</kbd> <kbd>↓</kbd> Naviguer</span>
                 <span><kbd>Entrée</kbd> Ouvrir</span>
                 <span><kbd>Échap</kbd> Fermer</span>
@@ -345,57 +396,52 @@
     </div>
 
     <!-- Custom Context Menu -->
-    <div id="custom-context-menu" class="context-menu">
-        <div class="context-item" id="ctx-open">
-            <i data-lucide="external-link"></i> Ouvrir
-        </div>
-        <div class="context-item" id="ctx-copy-url">
-            <i data-lucide="copy"></i> Copier l'URL
-        </div>
-        <div class="context-item" id="ctx-copy-ip">
-            <i data-lucide="terminal"></i> Copier l'IP / Hostname
-        </div>
-        <div class="context-divider"></div>
-        <div class="context-item" id="ctx-fav">
-            <i data-lucide="star"></i> Basculer Favori
-        </div>
-        <div class="context-item" id="ctx-edit">
-            <i data-lucide="edit-2"></i> Éditer
-        </div>
+    <div id="custom-context-menu" class="context-menu" role="menu" aria-label="Menu contextuel">
+        <div class="context-item" id="ctx-open" role="menuitem"><i data-lucide="external-link"></i> Ouvrir</div>
+        <div class="context-item" id="ctx-copy-url" role="menuitem"><i data-lucide="copy"></i> Copier l'URL</div>
+        <div class="context-item" id="ctx-copy-ip" role="menuitem"><i data-lucide="terminal"></i> Copier l'IP / Hostname</div>
+        <div class="context-divider" role="separator"></div>
+        <div class="context-item" id="ctx-fav" role="menuitem"><i data-lucide="star"></i> Basculer Favori</div>
+        <div class="context-item" id="ctx-edit" role="menuitem"><i data-lucide="edit-2"></i> Éditer</div>
     </div>
 
-    <!-- Templating for Add Card -->
-    <div id="add-card-template" style="display: none;">
-        <div class="card add-new-card" id="add-new-btn">
-            <div class="card-glass"></div>
+    <!-- Add Card Template (hidden) -->
+    <template id="add-card-template">
+        <div class="card add-new-card" id="add-new-btn" aria-label="Ajouter un service">
+            <div class="card-glass" aria-hidden="true"></div>
             <div class="card-content add-card-content">
-                <div class="add-icon-wrapper">
+                <div class="add-icon-wrapper" aria-hidden="true">
                     <i data-lucide="plus"></i>
                 </div>
                 <h3>Ajouter un service</h3>
             </div>
         </div>
-    </div>
+    </template>
 
     <!-- Scratchpad Widget -->
-    <div id="scratchpad-widget" class="scratchpad-widget">
+    <div id="scratchpad-widget" class="scratchpad-widget" role="complementary" aria-label="Bloc-notes rapide">
         <div class="scratchpad-header">
-            <h4 style="display:flex; align-items:center; gap:8px;"><i data-lucide="edit-3" style="width:18px;height:18px;"></i> Bloc-Notes Rapide</h4>
-            <button class="icon-btn action-sm" id="close-scratchpad" style="width:24px;height:24px;"><i data-lucide="x" style="width:16px;height:16px;"></i></button>
+            <h4 class="scratchpad-title">
+                <i data-lucide="edit-3" class="scratchpad-icon" aria-hidden="true"></i>
+                Bloc-Notes Rapide
+            </h4>
+            <button class="icon-btn action-sm" id="close-scratchpad" aria-label="Fermer le bloc-notes">
+                <i data-lucide="x"></i>
+            </button>
         </div>
-        <textarea id="scratchpad-content" placeholder="Collez vos mémos, configurations, IPs temporaires..&#10;Contenu sauvegardé automatiquement !"></textarea>
+        <textarea id="scratchpad-content" placeholder="Collez vos mémos, configurations, IPs temporaires..&#10;Contenu sauvegardé automatiquement !" aria-label="Contenu du bloc-notes"></textarea>
     </div>
-    
-    <button id="scratchpad-fab" class="scratchpad-fab" data-tippy-content="Ouvrir le Bloc-Notes">
+
+    <button id="scratchpad-fab" class="scratchpad-fab" data-tippy-content="Ouvrir le Bloc-Notes" aria-label="Ouvrir le bloc-notes">
         <i data-lucide="pen-tool"></i>
     </button>
 
-    <!-- External Libs -->
+    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
