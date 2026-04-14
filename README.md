@@ -1,44 +1,45 @@
 # Satel Lab Dashboard
 
-Un tableau de bord moderne, stylisé et interactif pour superviser et accéder rapidement aux services de votre infrastructure IT Lab.
+Un tableau de bord Web moderne, stylisé et interactif pour superviser et accéder rapidement à toute l'infrastructure (XCP-NG, TrueNAS, PfSense, etc.).
 
-## 🚀 Fonctionnalités
+## 🚀 Fonctionnalités Principales
 
-- **Interface Dynamique** : Design premium avec effets de verre (glassmorphism), animations fluides et arrière-plan animé.
-- **Tuiles de Services** : Accès rapide à XCP-NG, TrueNAS, Xen Orchestra (XOA) et PfSense.
-- **Vérification d'État (Health Check)** : Surveillance en temps réel de la disponibilité des services (En ligne / Hors ligne).
-- **Personnalisation** : Sélecteur de couleurs d'accentuation avec sauvegarde locale (localStorage).
-- **Navigation Optimisée** : Ouverture automatique des liens dans de nouveaux onglets pour ne pas perdre la vue d'ensemble.
-- **Widgets Temps Réel** : Horloge et date dynamiques avec salutations personnalisées selon l'heure de la journée.
+- **Interface Futuriste & Premium** : Design de type NOC (Network Operations Center) avec effets glassmorphism, thème sombre par défaut, et particules interactives en arrière-plan.
+- **Gestion Dynamique des Services (Admin Mode)** : Ajoutez, éditez, supprimez et réorganisez (Drag & Drop) les services en temps réel. Organisation possible via un système de **Dossiers**.
+- **Palette de Commande (Ctrl+K)** : Outil de recherche intégré pour trouver un service, filtrer par catégorie et exécuter des actions rapidement. Recherche de secours intégrée via Google ou DuckDuckGo.
+- **Bloc-Notes Intégré (Scratchpad)** : Widget flottant persisté localement pour noter rapidement des adresses IP ou des commandes.
+- **Paramètres Avancés** :
+  - *Personnalisation Visuelle* : Sélection de couleurs d'accentuation, polices personnalisables (Inter, Roboto, Outfit, Fira Code, Space Grotesk), densité et vitesse des particules.
+  - *Affichage* : Changement d'échelle UI (Compact/Standard/Large), disposition Grille ou Liste, Mode Kiosque (plein écran).
+  - *Modes Sombre / Clair* automatique ou forcé.
+- **Import / Export** : Sauvegardez et restaurez vos configurations de dashboard au format JSON / ITLAB.
+- **Système de Favoris** : Mettez en avant vos hôtes les plus critiques. Menu contextuel personnalisé (clic droit) pour copier l'URL ou ouvrir le service.
+- **Widgets Intégrés** : Horloge, date et intégration de la météo temps réel (geo IP locale) et de ses effets (pluie/neige sur les particules).
 
 ## 🛠️ Stack Technique
 
-- **HTML5** : Structure sémantique et SEO-friendly.
-- **Vanilla CSS** : Design système personnalisé, variables CSS, et responsive design.
-- **JavaScript (ES6)** : Logique de dashboard, gestion d'état, et interactions.
-- **Lucide Icons** : Bibliothèque d'icônes vectorielles élégantes.
-- **Google Fonts** : Typographie "Outfit" pour un look moderne et professionnel.
+- **Code Frontend** : HTML5, Vanilla JavaScript (ES6+), Vanilla CSS (variables natives).
+- **Icônes** : Lucide Icons (vecteurs légers et propres).
+- **Bibliothèques externes** : Tippy.js (Tooltips), SortableJS (Drag & Drop), Particles.js (Arrière-plan).
 
 ## 📁 Structure du Projet
 
 ```text
 Dashboard_Web-Server/
-├── index.html      # Structure principale du dashboard
-├── style.css       # Styles, animations et thématique
-├── script.js       # Logique, horloge, health checks et thèmes
-├── favicon.ico     # Icône du site
-└── README.md       # Documentation du projet (ce fichier)
+├── index.html      # Structure UI, panneaux de configuration
+├── style.css       # Design System complet, animations et responsivité
+├── script.js       # Logique (Services, Widgets, Command Palette, Stockage local)
+├── config.json     # Fichier de base de données (généré à l'export)
+├── favicon.png     # Icône de l'application
+└── README.md       # Documentation
 ```
 
 ## ⚙️ Installation & Utilisation
 
-1. Clonez ou téléchargez les fichiers dans le répertoire racine de votre serveur web (Nginx, Apache, etc.).
-2. Modifiez les liens `href` dans `index.html` pour qu'ils correspondent aux adresses IP ou DNS de vos services locaux.
-3. Ouvrez le dashboard dans n'importe quel navigateur moderne.
-
-## 📸 Aperçu
-
-Le dashboard utilise un thème sombre par défaut avec des accents de couleur modifiables via le panneau de paramètres (icône engrenage).
+1. Placez l'ensemble des fichiers dans le dossier source de votre serveur Web (Apache, Nginx, ou un simple Caddy Server).
+2. Vérifiez la présence et la mise en forme initiale de `config.json` afin de charger vos services primaires.
+3. Chargez l'interface. Cliquez sur le bouton "Paramètres" en haut à droite, puis sur "**Mode Administrateur**" pour commencer à ajouter et structurer vos services directement depuis le tableau de bord.
+4. Les préférences utilisateurs (Thème, favoris, disposition, bloc-notes) sont stockées dans le `localStorage` de votre navigateur.
 
 ---
 *© 2025-2026 Satel Lab Infrastructure | Dashboard*
