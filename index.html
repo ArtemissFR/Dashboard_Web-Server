@@ -1,180 +1,162 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satel Lab | Infrastructure</title>
-    <meta name="description" content="Tableau de bord d'infrastructure Satel Lab — accès centralisé aux services réseau.">
+    <title>Satel Lab | Infrastructure Network</title>
+    <meta name="description" content="Satel Lab — Tableau de bord de supervision d'infrastructure réseau.">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#09090b">
+    <meta name="theme-color" content="#030712">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="style.css">
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&family=Fira+Code:wght@400;500&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600&family=Roboto:wght@400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
-    <!-- Tippy.js Animations -->
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/scale.css" />
-
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 </head>
-
 <body>
-    <!-- PIN Lock Screen -->
-    <div id="pin-lock-overlay" class="pin-lock-overlay" role="dialog" aria-modal="true" aria-label="Verrouillage par PIN">
-        <div class="pin-lock-content">
-            <i data-lucide="lock" class="pin-lock-icon"></i>
-            <h2>Dashboard Verrouillé</h2>
-            <p class="pin-lock-subtitle">Entrez votre code PIN pour accéder à l'infrastructure</p>
-            <div class="pin-inputs" id="pin-inputs">
-                <input type="password" maxlength="1" class="pin-digit" autofocus aria-label="Chiffre 1">
-                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 2">
-                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 3">
-                <input type="password" maxlength="1" class="pin-digit" aria-label="Chiffre 4">
-            </div>
-            <p id="pin-error" class="pin-error" aria-live="polite">Code PIN incorrect</p>
-        </div>
-    </div>
 
-    <!-- Loading Screen -->
-    <div id="loader-overlay" class="loader-overlay" role="status" aria-label="Chargement en cours">
-        <div class="loader-content">
+
+    <!-- Loader -->
+    <div id="loader-overlay" class="loader-overlay">
+        <div class="loader-inner">
+            <div class="loader-hex-ring"></div>
             <i data-lucide="hexagon" class="loader-logo"></i>
-            <div class="loader-pulse"></div>
+            <div class="loader-text">INITIALISATION DU SYSTÈME</div>
+            <div class="loader-bar"><div class="loader-bar-inner"></div></div>
         </div>
     </div>
 
-    <!-- Aurora Background -->
-    <div class="aurora-bg" aria-hidden="true"></div>
-    <!-- Custom Cursor -->
+    <!-- Background Layers -->
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow" aria-hidden="true"></div>
     <div class="custom-cursor-dot" aria-hidden="true"></div>
-    <!-- Particles Background -->
     <div id="particles-js" class="particles-bg" aria-hidden="true"></div>
 
-    <!-- Top Navigation -->
+    <!-- Navigation HUD -->
     <nav class="top-nav" aria-label="Navigation principale">
+        <div class="nav-accent-line" aria-hidden="true"></div>
         <div class="nav-left">
             <div class="logo">
-                <div class="logo-icon" aria-hidden="true"><i data-lucide="hexagon"></i></div>
+                <div class="logo-hex" aria-hidden="true">
+                    <i data-lucide="hexagon" class="logo-hex-icon"></i>
+                    <span class="logo-hex-inner">SL</span>
+                </div>
                 <div class="logo-text">
-                    <h1>Satel Lab</h1>
-                    <span id="greeting" class="subtitle">Bonjour, Administrateur</span>
+                    <div class="logo-title">SATEL<span class="logo-accent"> LAB</span></div>
+                    <span id="greeting" class="logo-subtitle">INFRASTRUCTURE NETWORK</span>
                 </div>
             </div>
         </div>
 
         <div class="nav-center">
-            <button class="search-trigger" id="search-trigger" data-tippy-content="Recherche Globale (Ctrl+K)" aria-label="Ouvrir la recherche">
-                <div class="search-trigger-content">
-                    <i data-lucide="search"></i>
-                    <span>Rechercher...</span>
-                </div>
-                <kbd>Ctrl K</kbd>
+            <button class="search-trigger" id="search-trigger" aria-label="Recherche globale">
+                <span class="search-prompt">&gt;_</span>
+                <span class="search-placeholder">Rechercher services, hôtes...</span>
+                <kbd class="search-kbd">CTRL+K</kbd>
             </button>
         </div>
 
         <div class="nav-right">
             <div class="nav-stats">
-                <button id="weather-widget" class="weather-widget" data-tippy-content="Météo locale" aria-label="Météo locale">
+                <button id="weather-widget" class="weather-widget" aria-label="Météo locale">
                     <i data-lucide="cloud-sun" class="weather-icon"></i>
-                    <span id="weather-text">--°C</span>
+                    <span id="weather-text" class="mono">--°C</span>
                 </button>
-                <span class="divider" aria-hidden="true"></span>
-                <time id="current-time" aria-live="polite">00:00</time>
-                <span class="divider" aria-hidden="true"></span>
-                <time id="current-date">--/--</time>
+                <div class="nav-divider"></div>
+                <div class="nav-clock">
+                    <time id="current-time" class="nav-time mono">00:00:00</time>
+                    <time id="current-date" class="nav-date mono">--/--/----</time>
+                </div>
             </div>
-            <button id="theme-toggle" class="icon-btn" data-tippy-content="Basculer le thème" aria-label="Basculer le thème">
-                <i data-lucide="sun" id="theme-icon"></i>
-            </button>
-            <button id="settings-toggle" class="icon-btn" data-tippy-content="Personnalisation & Admin" aria-label="Ouvrir les paramètres">
-                <i data-lucide="settings"></i>
-            </button>
+            <div class="nav-actions">
+                <button id="theme-toggle" class="nav-btn" data-tippy-content="Basculer le thème" aria-label="Basculer le thème">
+                    <i data-lucide="sun"></i>
+                </button>
+                <button id="settings-toggle" class="nav-btn" data-tippy-content="Paramètres & Admin" aria-label="Paramètres">
+                    <i data-lucide="sliders-horizontal"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="dashboard-container">
+    <!-- Main -->
+    <main class="dashboard-main">
         <!-- Category Tabs -->
-        <div class="category-tabs-wrapper">
-            <div class="category-tabs" id="category-tabs" role="tablist" aria-label="Filtrer par catégorie">
-                <button class="category-tab active" data-category="all" role="tab" aria-selected="true">Tous</button>
-                <!-- Generated dynamically -->
+        <div class="tabs-bar">
+            <div class="tabs-label" aria-hidden="true">FILTRES</div>
+            <div class="category-tabs" id="category-tabs" role="tablist">
+                <button class="category-tab active" data-category="all">Tous</button>
             </div>
+            <div class="tabs-status" id="services-count" aria-live="polite"></div>
         </div>
 
-        <!-- Services Grid -->
-        <section class="grid-container" id="services-grid" aria-label="Services de l'infrastructure">
-            <!-- Cards generated dynamically -->
+        <!-- Grid -->
+        <section class="grid-container" id="services-grid" aria-label="Services d'infrastructure">
         </section>
 
-        <!-- Footer -->
         <footer class="dashboard-footer">
-            <p>&copy; 2025-2026 Satel Lab Infrastructure</p>
+            <span class="mono">// SATEL LAB INFRASTRUCTURE © 2025-2026</span>
         </footer>
     </main>
 
-    <!-- ===================== MODALS & OVERLAYS ===================== -->
+    <!-- =========== MODALS =========== -->
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Paramètres">
+    <!-- Settings Panel -->
+    <div id="settings-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-content settings-content">
+            <div class="modal-corner tl"></div>
+            <div class="modal-corner tr"></div>
+            <div class="modal-corner bl"></div>
+            <div class="modal-corner br"></div>
             <div class="modal-header">
-                <h2>Paramètres du Lab</h2>
-                <button class="icon-btn close-btn" id="close-settings" aria-label="Fermer les paramètres">
-                    <i data-lucide="x"></i>
-                </button>
+                <div class="modal-header-left">
+                    <span class="modal-tag">CONFIG</span>
+                    <h2>Paramètres du Lab</h2>
+                </div>
+                <button class="nav-btn close-btn" id="close-settings" aria-label="Fermer"><i data-lucide="x"></i></button>
             </div>
 
             <div class="settings-grid">
-
-                <!-- Colonne gauche -->
                 <div class="settings-column">
-
-                    <!-- Apparence & Thème -->
                     <section class="settings-section">
-                        <h4 class="settings-section-title">Apparence & Thème</h4>
-
+                        <h4 class="settings-section-title"><i data-lucide="palette"></i> Apparence</h4>
                         <div class="settings-group">
-                            <label class="settings-label">Couleur de l'interface (Accent)</label>
+                            <label class="settings-label">Couleur d'accentuation</label>
                             <div class="theme-options">
-                                <input type="color" id="custom-color-picker" value="#00d2ff" class="color-picker-input" aria-label="Couleur personnalisée">
-                                <div class="theme-dot active" style="background:#00d2ff;" data-color="#00d2ff" title="#00d2ff"></div>
-                                <div class="theme-dot" style="background:#9d50bb;" data-color="#9d50bb" title="#9d50bb"></div>
-                                <div class="theme-dot" style="background:#00f260;" data-color="#00f260" title="#00f260"></div>
-                                <div class="theme-dot" style="background:#ff9a9e;" data-color="#ff9a9e" title="#ff9a9e"></div>
-                                <div class="theme-dot" style="background:#ffb347;" data-color="#ffb347" title="#ffb347"></div>
-                                <div class="theme-dot" style="background:#f12711;" data-color="#f12711" title="#f12711"></div>
+                                <input type="color" id="custom-color-picker" value="#00d4ff" class="color-picker-input">
+                                <div class="theme-dot active" style="background:#00d4ff;" data-color="#00d4ff"></div>
+                                <div class="theme-dot" style="background:#a78bfa;" data-color="#a78bfa"></div>
+                                <div class="theme-dot" style="background:#34d399;" data-color="#34d399"></div>
+                                <div class="theme-dot" style="background:#fb923c;" data-color="#fb923c"></div>
+                                <div class="theme-dot" style="background:#f472b6;" data-color="#f472b6"></div>
+                                <div class="theme-dot" style="background:#facc15;" data-color="#facc15"></div>
                             </div>
                         </div>
-
                         <div class="settings-group">
                             <label for="ui-font" class="settings-label">Typographie</label>
                             <select id="ui-font" class="form-select">
-                                <option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta (Défaut)</option>
+                                <option value="'Space Grotesk', sans-serif">Space Grotesk (Défaut)</option>
                                 <option value="'Inter', sans-serif">Inter (Minimaliste)</option>
                                 <option value="'Outfit', sans-serif">Outfit (Moderne)</option>
                                 <option value="'Roboto', sans-serif">Roboto (Classique)</option>
-                                <option value="'Fira Code', monospace">Fira Code (Technique)</option>
+                                <option value="'Fira Code', monospace">Fira Code (Terminal)</option>
                             </select>
                         </div>
-
                         <div class="settings-group">
-                            <label for="color-match-mode" class="settings-label">Mode de couleur</label>
+                            <label for="color-match-mode" class="settings-label">Mode couleur</label>
                             <select id="color-match-mode" class="form-select">
                                 <option value="auto">Auto (système)</option>
                                 <option value="dark">Toujours Sombre</option>
                                 <option value="light">Toujours Clair</option>
                             </select>
                         </div>
-
                         <div class="settings-group">
-                            <label for="ui-scale" class="settings-label">Échelle de l'interface</label>
+                            <label for="ui-scale" class="settings-label">Échelle interface</label>
                             <select id="ui-scale" class="form-select">
                                 <option value="compact">Compacte</option>
                                 <option value="standard" selected>Standard</option>
@@ -183,97 +165,63 @@
                         </div>
                     </section>
 
-                    <!-- Affichage & Navigation -->
                     <section class="settings-section">
-                        <h4 class="settings-section-title">Affichage & Navigation</h4>
+                        <h4 class="settings-section-title"><i data-lucide="monitor"></i> Affichage</h4>
                         <div class="settings-group">
                             <label class="settings-label">Disposition des cartes</label>
                             <div class="layout-options">
-                                <button class="btn btn-outline active" id="layout-grid">
-                                    <i data-lucide="layout-grid"></i> Grille
-                                </button>
-                                <button class="btn btn-outline" id="layout-list">
-                                    <i data-lucide="list"></i> Liste
-                                </button>
+                                <button class="btn btn-outline active" id="layout-grid"><i data-lucide="layout-grid"></i> Grille</button>
+                                <button class="btn btn-outline" id="layout-list"><i data-lucide="list"></i> Liste</button>
                             </div>
                         </div>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="clock" class="settings-icon"></i> Horloge 24h
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="clock" class="settings-icon"></i> Horloge 24h</span>
                             <input type="checkbox" id="time-24h" checked>
                         </label>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="timer" class="settings-icon"></i> Afficher les secondes
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="timer" class="settings-icon"></i> Afficher les secondes</span>
                             <input type="checkbox" id="time-seconds" checked>
                         </label>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="external-link" class="settings-icon"></i> Liens dans un nouvel onglet
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="external-link" class="settings-icon"></i> Nouvel onglet</span>
                             <input type="checkbox" id="link-newtab" checked>
                         </label>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="mouse-pointer-click" class="settings-icon"></i> Clic sur la carte ouvre le lien
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="mouse-pointer-click" class="settings-icon"></i> Clic carte ouvre le lien</span>
                             <input type="checkbox" id="link-fullcard" checked>
                         </label>
-
-                        <button id="kiosk-mode-btn" class="btn btn-kiosk">
-                            <i data-lucide="monitor"></i> Activer Mode Kiosque
+                        <button id="kiosk-mode-btn" class="btn btn-outline btn-full btn-kiosk">
+                            <i data-lucide="monitor"></i> Mode Kiosque Plein Écran
                         </button>
                     </section>
-
                 </div>
 
-                <!-- Colonne droite -->
                 <div class="settings-column">
-
-                    <!-- Performances & Arrière-plan -->
                     <section class="settings-section">
-                        <h4 class="settings-section-title">Performances & Arrière-plan</h4>
-
+                        <h4 class="settings-section-title"><i data-lucide="zap"></i> Performances</h4>
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="volume-2" class="settings-icon"></i> Effets sonores
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="volume-2" class="settings-icon"></i> Effets sonores</span>
                             <input type="checkbox" id="ui-sounds-toggle">
                         </label>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="cloud-rain" class="settings-icon"></i> Météo immersive
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="cloud-rain" class="settings-icon"></i> Météo immersive</span>
                             <input type="checkbox" id="weather-fx-toggle" checked>
                         </label>
-
                         <label class="settings-toggle-row">
-                            <span class="settings-toggle-label">
-                                <i data-lucide="zap" class="settings-icon"></i> Mode Économie d'Énergie
-                            </span>
+                            <span class="settings-toggle-label"><i data-lucide="battery-low" class="settings-icon"></i> Mode Économie d'Énergie</span>
                             <input type="checkbox" id="perf-mode-toggle">
                         </label>
-
                         <div class="settings-sub-group">
                             <label for="custom-wallpaper" class="settings-label">Fond d'écran (URL)</label>
                             <input type="url" id="custom-wallpaper" placeholder="https://..." class="form-input">
-
-                            <label for="particles-density" class="settings-label settings-label-mt">Densité des Particules</label>
+                            <label for="particles-density" class="settings-label settings-label-mt">Densité Particules</label>
                             <select id="particles-density" class="form-select">
                                 <option value="disabled">Désactivé</option>
                                 <option value="low">Faible</option>
                                 <option value="normal" selected>Normal</option>
                                 <option value="high">Élevé</option>
                             </select>
-
-                            <label for="particles-speed" class="settings-label settings-label-mt">Vitesse des Particules</label>
+                            <label for="particles-speed" class="settings-label settings-label-mt">Vitesse Particules</label>
                             <select id="particles-speed" class="form-select">
                                 <option value="0.5">Lent</option>
                                 <option value="1.5" selected>Normal</option>
@@ -282,10 +230,8 @@
                         </div>
                     </section>
 
-                    <!-- Données & Administration -->
                     <section class="settings-section">
-                        <h4 class="settings-section-title">Données & Administration</h4>
-
+                        <h4 class="settings-section-title"><i data-lucide="shield"></i> Administration</h4>
                         <div class="settings-group">
                             <label for="search-fallback" class="settings-label">Moteur de recherche (Ctrl+K)</label>
                             <select id="search-fallback" class="form-select">
@@ -295,30 +241,22 @@
                             </select>
                         </div>
 
-                        <div class="settings-group">
-                            <label for="admin-pin-set" class="settings-label">Code PIN (vide = désactivé)</label>
-                            <input type="password" id="admin-pin-set" placeholder="Ex: 1234" maxlength="4" class="form-input">
-                        </div>
-
                         <button id="admin-toggle" class="btn btn-outline btn-full">
                             <i data-lucide="shield-alert"></i> Mode Administrateur
                         </button>
-
                         <div class="btn-group" id="admin-import-export-wrapper">
-                            <button id="export-profile" class="btn btn-primary btn-hidden" aria-label="Exporter le profil">
-                                <i data-lucide="download"></i> Exporter Profil
+                            <button id="export-profile" class="btn btn-primary btn-hidden">
+                                <i data-lucide="download"></i> Exporter
                             </button>
-                            <button id="import-profile" class="btn btn-outline btn-hidden" onclick="document.getElementById('import-profile-file').click();" aria-label="Importer un profil">
+                            <button id="import-profile" class="btn btn-outline btn-hidden" onclick="document.getElementById('import-profile-file').click();">
                                 <i data-lucide="upload"></i> Importer
                             </button>
                             <input type="file" id="import-profile-file" class="visually-hidden" accept=".itlab">
                         </div>
-
                         <button id="reset-data" class="btn btn-danger btn-full">
-                            <i data-lucide="trash-2"></i> Réinitialiser mes préférences
+                            <i data-lucide="trash-2"></i> Réinitialiser les préférences
                         </button>
                     </section>
-
                 </div>
             </div>
         </div>
@@ -327,8 +265,13 @@
     <!-- Admin Form Modal -->
     <div id="admin-modal" class="modal-overlay" role="dialog" aria-modal="true">
         <div class="modal-content">
+            <div class="modal-corner tl"></div><div class="modal-corner tr"></div>
+            <div class="modal-corner bl"></div><div class="modal-corner br"></div>
             <div class="modal-header">
-                <h2 id="modal-title">Ajouter un Service</h2>
+                <div class="modal-header-left">
+                    <span class="modal-tag">ADMIN</span>
+                    <h2 id="modal-title">Ajouter un Service</h2>
+                </div>
             </div>
             <form id="service-form" novalidate>
                 <input type="hidden" id="service-id">
@@ -337,15 +280,15 @@
                     <input type="text" id="service-name" required placeholder="Ex: XCP-NG 01" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="service-type">Tags / Catégories (séparés par virgule)</label>
+                    <label for="service-type">Tags / Catégories (virgule)</label>
                     <input type="text" id="service-type" required placeholder="Ex: Virtualisation, Production" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="service-folder">Dossier optionnel</label>
-                    <input type="text" id="service-folder" placeholder="Ex: Infrastructure (vide = aucun)" autocomplete="off">
+                    <label for="service-folder">Dossier (optionnel)</label>
+                    <input type="text" id="service-folder" placeholder="Ex: Infrastructure" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="service-desc">Description courte</label>
+                    <label for="service-desc">Description</label>
                     <input type="text" id="service-desc" required placeholder="Ex: Serveur principal" autocomplete="off">
                 </div>
                 <div class="form-group">
@@ -353,8 +296,8 @@
                     <input type="url" id="service-url" required placeholder="https://...">
                 </div>
                 <div class="form-group">
-                    <label for="service-icon">Icône (Lucide) ou Logo (URL)</label>
-                    <input type="text" id="service-icon" required placeholder="ex: server  ou  https://...">
+                    <label for="service-icon">Icône Lucide ou URL Logo</label>
+                    <input type="text" id="service-icon" required placeholder="server  ou  https://...">
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-outline" id="btn-cancel-modal">Annuler</button>
@@ -364,84 +307,80 @@
         </div>
     </div>
 
-    <!-- Folder View Modal -->
+    <!-- Folder Modal -->
     <div id="folder-modal" class="modal-overlay folder-modal-overlay" role="dialog" aria-modal="true">
         <div class="folder-content">
-            <h2 id="folder-modal-title" class="folder-modal-title">Dossier</h2>
-            <div id="folder-grid" class="grid-container folder-grid">
-                <!-- Internal cards -->
+            <div class="modal-corner tl"></div><div class="modal-corner tr"></div>
+            <div class="modal-corner bl"></div><div class="modal-corner br"></div>
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <span class="modal-tag">DOSSIER</span>
+                    <h2 id="folder-modal-title">Dossier</h2>
+                </div>
             </div>
-            <button id="close-folder" class="btn btn-outline btn-full">
-                <i data-lucide="x"></i> Fermer le dossier
-            </button>
+            <div id="folder-grid" class="grid-container folder-grid"></div>
+            <button id="close-folder" class="btn btn-outline btn-full" style="margin-top:24px;"><i data-lucide="x"></i> Fermer</button>
         </div>
     </div>
 
-    <!-- Command Palette (Ctrl+K) -->
-    <div id="command-palette-overlay" class="cmd-overlay" role="dialog" aria-modal="true" aria-label="Palette de commandes">
-        <div class="cmd-palette" role="search">
+    <!-- Command Palette -->
+    <div id="command-palette-overlay" class="cmd-overlay" role="dialog" aria-modal="true">
+        <div class="cmd-palette">
+            <div class="modal-corner tl"></div><div class="modal-corner tr"></div>
+            <div class="modal-corner bl"></div><div class="modal-corner br"></div>
             <div class="cmd-search">
-                <i data-lucide="search" aria-hidden="true"></i>
-                <input type="text" id="cmd-input" placeholder="Que cherchez-vous ?" autocomplete="off" aria-label="Rechercher un service">
+                <span class="cmd-prompt mono">&gt;_</span>
+                <input type="text" id="cmd-input" placeholder="Rechercher un service ou hôte..." autocomplete="off">
             </div>
-            <ul id="cmd-results" class="cmd-results" role="listbox" aria-label="Résultats de recherche">
-                <!-- Dynamic results -->
-            </ul>
-            <div class="cmd-footer" aria-hidden="true">
-                <span><kbd>↑</kbd> <kbd>↓</kbd> Naviguer</span>
-                <span><kbd>Entrée</kbd> Ouvrir</span>
-                <span><kbd>Échap</kbd> Fermer</span>
+            <ul id="cmd-results" class="cmd-results" role="listbox"></ul>
+            <div class="cmd-footer">
+                <span class="mono"><kbd>↑↓</kbd> Naviguer</span>
+                <span class="mono"><kbd>↵</kbd> Ouvrir</span>
+                <span class="mono"><kbd>ESC</kbd> Fermer</span>
             </div>
         </div>
     </div>
 
-    <!-- Custom Context Menu -->
-    <div id="custom-context-menu" class="context-menu" role="menu" aria-label="Menu contextuel">
-        <div class="context-item" id="ctx-open" role="menuitem"><i data-lucide="external-link"></i> Ouvrir</div>
-        <div class="context-item" id="ctx-copy-url" role="menuitem"><i data-lucide="copy"></i> Copier l'URL</div>
-        <div class="context-item" id="ctx-copy-ip" role="menuitem"><i data-lucide="terminal"></i> Copier l'IP / Hostname</div>
-        <div class="context-divider" role="separator"></div>
-        <div class="context-item" id="ctx-fav" role="menuitem"><i data-lucide="star"></i> Basculer Favori</div>
-        <div class="context-item" id="ctx-edit" role="menuitem"><i data-lucide="edit-2"></i> Éditer</div>
+    <!-- Context Menu -->
+    <div id="custom-context-menu" class="context-menu" role="menu">
+        <div class="context-item" id="ctx-open"><i data-lucide="external-link"></i> Ouvrir</div>
+        <div class="context-item" id="ctx-copy-url"><i data-lucide="copy"></i> Copier l'URL</div>
+        <div class="context-item" id="ctx-copy-ip"><i data-lucide="terminal"></i> Copier l'Hostname</div>
+        <div class="context-divider"></div>
+        <div class="context-item" id="ctx-fav"><i data-lucide="star"></i> Basculer Favori</div>
+        <div class="context-item" id="ctx-edit"><i data-lucide="edit-2"></i> Éditer</div>
     </div>
 
-    <!-- Add Card Template (hidden) -->
+    <!-- Add Card Template -->
     <template id="add-card-template">
         <div class="card add-new-card" id="add-new-btn" aria-label="Ajouter un service">
-            <div class="card-glass" aria-hidden="true"></div>
             <div class="card-content add-card-content">
-                <div class="add-icon-wrapper" aria-hidden="true">
-                    <i data-lucide="plus"></i>
-                </div>
+                <div class="add-icon-wrapper"><i data-lucide="plus"></i></div>
                 <h3>Ajouter un service</h3>
             </div>
         </div>
     </template>
 
-    <!-- Scratchpad Widget -->
-    <div id="scratchpad-widget" class="scratchpad-widget" role="complementary" aria-label="Bloc-notes rapide">
+    <!-- Scratchpad -->
+    <div id="scratchpad-widget" class="scratchpad-widget" role="complementary">
         <div class="scratchpad-header">
-            <h4 class="scratchpad-title">
-                <i data-lucide="edit-3" class="scratchpad-icon" aria-hidden="true"></i>
-                Bloc-Notes Rapide
-            </h4>
-            <button class="icon-btn action-sm" id="close-scratchpad" aria-label="Fermer le bloc-notes">
-                <i data-lucide="x"></i>
-            </button>
+            <div class="scratchpad-title">
+                <span class="mono scratchpad-prompt">// </span>
+                <i data-lucide="terminal" class="scratchpad-icon"></i>
+                BLOC-NOTES
+            </div>
+            <button class="nav-btn" id="close-scratchpad" aria-label="Fermer"><i data-lucide="x"></i></button>
         </div>
-        <textarea id="scratchpad-content" placeholder="Collez vos mémos, configurations, IPs temporaires..&#10;Contenu sauvegardé automatiquement !" aria-label="Contenu du bloc-notes"></textarea>
+        <textarea id="scratchpad-content" placeholder="// Mémos, IPs, configurations...&#10;// Sauvegarde automatique activée"></textarea>
     </div>
-
-    <button id="scratchpad-fab" class="scratchpad-fab" data-tippy-content="Ouvrir le Bloc-Notes" aria-label="Ouvrir le bloc-notes">
-        <i data-lucide="pen-tool"></i>
+    <button id="scratchpad-fab" class="scratchpad-fab" data-tippy-content="Bloc-Notes" aria-label="Bloc-Notes">
+        <i data-lucide="terminal"></i>
     </button>
 
-    <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>
